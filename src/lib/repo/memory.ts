@@ -35,6 +35,8 @@ export class MemoryRepo implements Repo {
   async updateBusiness(id: string, patch: Partial<Business>) { return patchRow(this.db.businesses, id, patch); }
 
   async listServices(businessId: string) { return this.db.services.filter((s) => s.business_id === businessId && s.active); }
+  async createService(s: Omit<Service, "id"> & { sort?: number }) { const row = { ...s, id: uid() } as Service; this.db.services.push(row); return row; }
+  async updateService(id: string, patch: Partial<Service> & { sort?: number }) { return patchRow(this.db.services, id, patch); }
   async listActiveSpecials(businessId: string, onDate: string) {
     return this.db.specials.filter((s) => s.business_id === businessId && s.mention_in_chats && s.starts_on <= onDate && s.ends_on >= onDate);
   }

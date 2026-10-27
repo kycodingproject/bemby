@@ -1,19 +1,36 @@
 import { currentBusinessId, getRepo } from "@/lib/repo";
 import { SettingsForm } from "@/components/SettingsForm";
+import { ProfileEditor } from "@/components/ProfileEditor";
+import { BUSINESS_TYPES } from "@/lib/templates";
+import { dollars } from "@/lib/validation";
 
 export default async function SettingsPage() {
   const repo = getRepo();
   const b = (await repo.getBusiness(await currentBusinessId()))!;
+  const services = await repo.listServices(b.id);
+  const type = BUSINESS_TYPES.find((t) => t.id === b.business_type) ?? BUSINESS_TYPES[BUSINESS_TYPES.length - 1];
   const fmtPhone = (p: string | null) => (p && /^\+1\d{10}$/.test(p) ? `(${p.slice(2, 5)}) ${p.slice(5, 8)}-${p.slice(8)}` : p ?? "Not set up yet");
 
   return (
     <div className="flex flex-col gap-6">
       <header>
         <h1 className="font-display text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="mt-1.5 text-sm text-muted">Decide how much Bemby does on its own.</p>
+        <p className="mt-1.5 text-sm text-muted">Your services, hours, and how much Bemby does on its own.</p>
       </header>
 
       <SettingsForm autonomy={b.autonomy} askFirst={b.ask_first} paused={b.paused} />
+
+      <ProfileEditor
+        key={b.id}
+        name={b.name}
+        ownerName={b.owner_name}
+        services={services.map((s) => ({ id: s.id, name: s.name, price: dollars(s.price_cents), minutes: s.duration_minutes, deposit: s.deposit_cents ? dollars(s.deposit_cents) : "", intake: s.intake }))}
+        suggestions={type.asks}
+        hours={b.hours}
+        minNoticeHours={b.min_notice_hours}
+        bufferMinutes={b.buffer_minutes}
+        policies={b.policies}
+      />
 
       <div className="grid gap-6 md:grid-cols-2">
         <section aria-label="Channels" className="card p-6">

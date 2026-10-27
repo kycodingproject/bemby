@@ -55,7 +55,7 @@ function ServiceRow(props: { index: number; service: ServiceDraft; suggestions: 
         <label className="flex flex-[1_1_120px] flex-col gap-1.5 text-xs text-muted">
           Time
           <select className="input bg-card" value={s.minutes} onChange={(e) => onChange({ minutes: Number(e.target.value) })}>
-            {DURATIONS.map((m) => <option key={m} value={m}>{durationLabel(m)}</option>)}
+            {(DURATIONS.includes(s.minutes) ? DURATIONS : [...DURATIONS, s.minutes].sort((a, b) => a - b)).map((m) => <option key={m} value={m}>{durationLabel(m)}</option>)}
           </select>
         </label>
         <label className="flex flex-[1_1_90px] flex-col gap-1.5 text-xs text-muted">

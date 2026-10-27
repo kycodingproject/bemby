@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import Anthropic from "@anthropic-ai/sdk";
+import { z } from "zod";
+import { cents, dollars, HoursInput, hoursProblem, ServiceInput } from "@/lib/validation";
 import { currentBusinessId, getRepo, isDemo, resetSampleStudio } from "@/lib/repo";
 import { DEMO_TEST_PHONE } from "@/lib/repo/seed";
 import { deliver } from "@/lib/channels/deliver";
@@ -181,4 +183,61 @@ export async function saveSpecial(input: { serviceId: string | null; deal: strin
     starts_on: input.startsOn, ends_on: input.endsOn, mention_in_chats: input.mention, caption: input.caption.slice(0, 1000),
   });
   refresh();
+}
+
+// ---------- Business profile (Settings) ----------
+
+export async function saveBusinessDetails(input: { name: string; ownerName: string }) {
+  const { repo, business } = await ownedBusiness();
+  const name = input.name.trim().slice(0, 80);
+  const ownerName = input.ownerName.trim().slice(0, 40);
+  if (!name || !ownerName) return { error: "Add your business name and first name." };
+  await repo.updateBusiness(business.id, { name, owner_name: ownerName });
+  refresh();
+  return { ok: true };
+}
+
+export async function saveServices(raw: unknown) {
+  const { repo, business } = await ownedBusiness();
+  const parsed = z.array(ServiceInput).min(1, "Keep at least one service").max(40).safeParse(raw);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your services." };
+  const existing = await repo.listServices(business.id);
+  const keep = new Set<string>();
+  for (const [i, s] of parsed.data.entries()) {
+    const fields = {
+      name: s.name, price_cents: cents(s.price), duration_minutes: s.minutes,
+      deposit_cents: cents(s.deposit) ?? 0, intake: s.intake, active: true, sort: i,
+    };
+    if (s.id && existing.some((e) => e.id === s.id)) {
+      await repo.updateService(s.id, fields);
+      keep.add(s.id);
+    } else {
+      const created = await repo.createService({ ...fields, business_id: business.id, price_note: null });
+      keep.add(created.id);
+    }
+  }
+  // Removed services are hidden, not deleted, so past appointments keep their service name.
+  for (const e of existing) if (!keep.has(e.id)) await repo.updateService(e.id, { active: false });
+  refresh();
+  const saved = await repo.listServices(business.id);
+  return {
+    ok: true,
+    services: saved.map((x) => ({ id: x.id, name: x.name, price: dollars(x.price_cents), minutes: x.duration_minutes, deposit: x.deposit_cents ? dollars(x.deposit_cents) : "", intake: x.intake })),
+  };
+}
+
+export async function saveHours(input: { hours: unknown; minNoticeHours: number; bufferMinutes: number; policies: string }) {
+  const { repo, business } = await ownedBusiness();
+  const parsed = HoursInput.safeParse(input.hours);
+  if (!parsed.success) return { error: "Check your opening hours." };
+  const problem = hoursProblem(parsed.data);
+  if (problem) return { error: problem };
+  await repo.updateBusiness(business.id, {
+    hours: parsed.data,
+    min_notice_hours: Math.max(0, Math.min(168, Math.round(input.minNoticeHours))),
+    buffer_minutes: Math.max(0, Math.min(120, Math.round(input.bufferMinutes))),
+    policies: String(input.policies ?? "").slice(0, 2000).trim(),
+  });
+  refresh();
+  return { ok: true };
 }

@@ -10,6 +10,8 @@ export interface Repo {
 
   // services & specials
   listServices(businessId: string): Promise<Service[]>;
+  createService(s: Omit<Service, "id"> & { sort?: number }): Promise<Service>;
+  updateService(id: string, patch: Partial<Service> & { sort?: number }): Promise<Service>;
   listActiveSpecials(businessId: string, onDate: string): Promise<Special[]>;
   listSpecials(businessId: string): Promise<Special[]>;
   createSpecial(s: Omit<Special, "id">): Promise<Special>;

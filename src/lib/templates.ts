@@ -1,6 +1,8 @@
 import type { IntakeItem } from "./types";
 
 export interface ServiceDraft {
+  /** Set when editing a saved service */
+  id?: string;
   name: string;
   price: string; // dollars as typed; blank = "price varies"
   minutes: number;

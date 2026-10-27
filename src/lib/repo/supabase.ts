@@ -31,6 +31,12 @@ export class SupabaseRepo implements Repo {
   async listServices(businessId: string) {
     return must(await this.sb.from("services").select("*").eq("business_id", businessId).eq("active", true).order("sort")) as Service[];
   }
+  async createService(s: Omit<Service, "id"> & { sort?: number }) {
+    return must(await this.sb.from("services").insert(s).select().single()) as Service;
+  }
+  async updateService(id: string, patch: Partial<Service> & { sort?: number }) {
+    return must(await this.sb.from("services").update(patch).eq("id", id).select().single()) as Service;
+  }
   async listActiveSpecials(businessId: string, onDate: string) {
     return must(
       await this.sb.from("specials").select("*").eq("business_id", businessId).eq("mention_in_chats", true).lte("starts_on", onDate).gte("ends_on", onDate),
