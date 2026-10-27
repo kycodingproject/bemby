@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const raw = await req.text();
   if (!validMetaSignature(raw, req.headers.get("x-hub-signature-256"))) {
+    console.error("[meta webhook] signature check failed: META_APP_SECRET / INSTAGRAM_APP_SECRET in Vercel don't match the app's secrets");
     return new NextResponse("invalid signature", { status: 403 });
   }
   let body: { object?: string; entry?: { id: string; messaging?: MessagingEvent[] }[] };
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse("bad json", { status: 400 });
   }
   const channel = body.object === "instagram" ? "instagram" : body.object === "page" ? "messenger" : null;
+  console.log(`[meta webhook] received object=${body.object} accounts=${(body.entry ?? []).map((e) => e.id).join(",")}`);
   if (!channel) return NextResponse.json({ ok: true });
 
   // Reply to Meta fast (it retries slow webhooks); Bemby answers in the background.
@@ -51,7 +53,10 @@ export async function POST(req: NextRequest) {
     const repo = getRepo();
     for (const entry of body.entry ?? []) {
       const business = await repo.getBusinessByChannelAccount(channel, entry.id);
-      if (!business) continue;
+      if (!business) {
+        console.error(`[meta webhook] no Bemby business is connected to ${channel} account ${entry.id}. Reconnect it in Settings.`);
+        continue;
+      }
       for (const ev of entry.messaging ?? []) {
         const msg = ev.message;
         const from = ev.sender?.id;
