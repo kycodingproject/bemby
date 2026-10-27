@@ -10,6 +10,7 @@ import { EXTRA_TEXTS, PLANS, planOf } from "@/lib/plans";
 import Link from "next/link";
 import { billingEnabled, hasActivePlan } from "@/lib/billing";
 import { openBillingPortal } from "../billing/actions";
+import { DeleteAccount } from "@/components/DeleteAccount";
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string }> }) {
   const repo = getRepo();
@@ -116,6 +117,11 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           )}
         </section>
       </div>
+
+      {!isDemo() && <DeleteAccount />}
+      <p className="text-center text-xs text-muted">
+        <Link href="/privacy" className="underline">Privacy Policy</Link> · <Link href="/terms" className="underline">Terms of Service</Link> · <Link href="/data-deletion" className="underline">Data deletion</Link>
+      </p>
     </div>
   );
 }

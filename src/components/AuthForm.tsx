@@ -42,6 +42,16 @@ export function AuthForm(props: {
           </Link>
         </p>
       </section>
+      {signup && (
+        <p className="max-w-md text-center text-xs text-muted">
+          By creating an account you agree to the <Link href="/terms" className="underline">Terms of Service</Link> and <Link href="/privacy" className="underline">Privacy Policy</Link>.
+        </p>
+      )}
+      <nav aria-label="Legal" className="flex gap-4 text-xs text-muted">
+        <Link href="/privacy" className="hover:text-ink">Privacy</Link>
+        <Link href="/terms" className="hover:text-ink">Terms</Link>
+        <Link href="/data-deletion" className="hover:text-ink">Data deletion</Link>
+      </nav>
     </main>
   );
 }

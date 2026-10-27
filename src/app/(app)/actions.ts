@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { cents, dollars, HoursInput, hoursProblem, ServiceInput, TextingRegistrationInput } from "@/lib/validation";
@@ -288,4 +289,46 @@ export async function requestBusinessNumber(raw: unknown) {
   });
   refresh();
   return { ok: true };
+}
+
+// ---------- Delete account ----------
+
+export async function deleteAccount(confirm: string) {
+  if (confirm.trim().toUpperCase() !== "DELETE") return { error: 'Type DELETE to confirm.' };
+  if (isDemo()) return { error: "The sample studio can't be deleted. Use Reset demo data in the Inbox instead." };
+  const { business } = await ownedBusiness();
+  const { serviceRoleClient } = await import("@/lib/repo/supabase");
+  const { currentUser, authClient } = await import("@/lib/auth");
+  const sb = serviceRoleClient();
+  const user = await currentUser();
+
+  // 1. Stop billing right away.
+  if (business.stripe_subscription_id) {
+    try {
+      const { stripe } = await import("@/lib/billing");
+      await stripe().subscriptions.cancel(business.stripe_subscription_id);
+    } catch (e) {
+      console.error("cancel subscription on delete failed", e);
+    }
+  }
+  // 2. Delete client photos.
+  try {
+    const bucket = sb.storage.from("client-photos");
+    for (let i = 0; i < 50; i++) {
+      const { data } = await bucket.list(business.id, { limit: 1000 });
+      if (!data?.length) break;
+      await bucket.remove(data.map((f) => `${business.id}/${f.name}`));
+    }
+  } catch (e) {
+    console.error("photo cleanup failed", e);
+  }
+  // 3. Delete the business; services, clients, conversations, messages, appointments, goals, specials and tokens cascade.
+  const { error } = await sb.from("businesses").delete().eq("id", business.id);
+  if (error) return { error: `Couldn't delete: ${error.message}` };
+  // 4. Delete the login itself.
+  if (user) {
+    await (await authClient()).auth.signOut().catch(() => undefined);
+    await sb.auth.admin.deleteUser(user.id).catch((e) => console.error("auth delete failed", e));
+  }
+  redirect("/signup?deleted=1");
 }
