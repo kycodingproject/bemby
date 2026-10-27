@@ -21,6 +21,21 @@ export async function storeTwilioMedia(businessId: string, url: string | undefin
   return { path, content_type: contentType };
 }
 
+/** Download a photo from a public CDN link (Instagram / Messenger attachments) and keep a private copy. */
+export async function storeRemoteMedia(businessId: string, url: string | undefined): Promise<MediaRef | null> {
+  if (!url || !/^https:\/\//.test(url)) return null;
+  const res = await fetch(url).catch(() => null);
+  if (!res?.ok) return null;
+  const contentType = (res.headers.get("content-type") ?? "").split(";")[0].trim();
+  if (!IMAGE_TYPES.includes(contentType as (typeof IMAGE_TYPES)[number])) return null;
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (buf.byteLength > MAX_BYTES) return null;
+  const path = `${businessId}/${crypto.randomUUID()}.${contentType.split("/")[1]}`;
+  const { error } = await serviceRoleClient().storage.from("client-photos").upload(path, buf, { contentType });
+  if (error) return null;
+  return { path, content_type: contentType };
+}
+
 /** Give the model the actual image so it can see the client's hair, skin or reference art. */
 export const loadStoredMedia: MediaLoader = async (ref) => {
   if (ref.path.startsWith("demo:")) return null;

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
-import { cents, dollars, HoursInput, hoursProblem, ServiceInput } from "@/lib/validation";
+import { cents, dollars, HoursInput, hoursProblem, ServiceInput, TextingRegistrationInput } from "@/lib/validation";
 import { currentBusinessId, getRepo, isDemo, resetSampleStudio } from "@/lib/repo";
 import { DEMO_TEST_PHONE } from "@/lib/repo/seed";
 import { deliver } from "@/lib/channels/deliver";
@@ -237,6 +237,54 @@ export async function saveHours(input: { hours: unknown; minNoticeHours: number;
     min_notice_hours: Math.max(0, Math.min(168, Math.round(input.minNoticeHours))),
     buffer_minutes: Math.max(0, Math.min(120, Math.round(input.bufferMinutes))),
     policies: String(input.policies ?? "").slice(0, 2000).trim(),
+  });
+  refresh();
+  return { ok: true };
+}
+
+// ---------- Channels ----------
+
+export async function disconnectChannel(kind: "instagram" | "messenger") {
+  const { repo, business } = await ownedBusiness();
+  if (isDemo()) return;
+  const { saveChannelSecrets } = await import("@/lib/channels/meta");
+  if (kind === "instagram") {
+    await saveChannelSecrets(business.id, { instagram_user_id: null, instagram_username: null, instagram_token: null, instagram_token_expires_at: null });
+    await repo.updateBusiness(business.id, { instagram_account_id: null, instagram_username: null });
+  } else {
+    await saveChannelSecrets(business.id, { messenger_page_id: null, messenger_page_name: null, messenger_page_token: null, pending_pages: null });
+    await repo.updateBusiness(business.id, { messenger_page_id: null, messenger_page_name: null });
+  }
+  refresh();
+}
+
+export async function chooseMessengerPage(pageId: string) {
+  const { business } = await ownedBusiness();
+  const { getChannelSecrets } = await import("@/lib/channels/meta");
+  const { linkMessengerPage } = await import("@/lib/channels/link");
+  const secrets = await getChannelSecrets(business.id);
+  const page = secrets?.pending_pages?.find((p) => p.id === pageId);
+  if (!page) return { error: "That Page list expired. Tap Connect Messenger again." };
+  try {
+    await linkMessengerPage(business.id, page);
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+  refresh();
+  return { ok: true };
+}
+
+// ---------- Business phone number ----------
+
+export async function requestBusinessNumber(raw: unknown) {
+  const { repo, business } = await ownedBusiness();
+  if (isDemo()) return { error: "Sign in to your own account to request a number." };
+  const parsed = TextingRegistrationInput.safeParse(raw);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the details." };
+  await repo.updateBusiness(business.id, {
+    texting_status: "requested",
+    texting_registration: { ...parsed.data, ein: parsed.data.ein || null },
+    texting_requested_at: new Date().toISOString(),
   });
   refresh();
   return { ok: true };

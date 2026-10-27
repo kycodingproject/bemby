@@ -21,6 +21,23 @@ export interface Business {
   policies: string;
   plan: string;
   monthly_text_limit: number;
+  instagram_username?: string | null;
+  messenger_page_name?: string | null;
+  texting_status?: "none" | "requested" | "pending" | "active" | "failed";
+  texting_registration?: TextingRegistration | Record<string, never>;
+  texting_requested_at?: string | null;
+}
+
+/** What carriers need to approve a business for texting (A2P 10DLC). */
+export interface TextingRegistration {
+  legal_name: string;
+  ein: string | null; // null = sole proprietor
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  contact_phone: string; // sole proprietors get a verification code here
+  contact_email: string;
 }
 
 export interface IntakeItem {

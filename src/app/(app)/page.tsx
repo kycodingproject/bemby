@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { currentBusinessId, getRepo } from "@/lib/repo";
+import { currentBusinessId, getRepo, isDemo } from "@/lib/repo";
 import { homeData } from "@/lib/queries";
 import { GoalAdder } from "@/components/GoalAdder";
 
@@ -33,14 +33,24 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </div>
       </header>
 
-      {welcome && (
-        <section className="card flex flex-wrap items-center gap-4 border-brand/30 bg-brand-soft p-5">
-          <div className="orb size-10 shrink-0" />
-          <div className="min-w-56 flex-1">
-            <p className="font-display text-lg font-semibold">You&apos;re all set up, {d.business.owner_name}!</p>
-            <p className="mt-1 text-sm text-ink-2">Try Bemby in your Inbox: text your business like a client and watch it book. Your real Bemby number turns on when texting is connected.</p>
+      {(welcome || (!isDemo() && !d.business.instagram_account_id && !d.business.messenger_page_id)) && (
+        <section className="card flex flex-col gap-4 border-brand/30 bg-brand-soft p-5">
+          <div className="flex items-start gap-4">
+            <div className="orb size-10 shrink-0" />
+            <div className="min-w-56 flex-1">
+              <p className="font-display text-lg font-semibold">
+                {welcome ? `You're all set up, ${d.business.owner_name}!` : "Connect your DMs so Bemby can start booking"}
+              </p>
+              <p className="mt-1 text-sm text-ink-2">
+                Connect Instagram and Messenger and Bemby starts answering DMs right away. You can also practice in your Inbox first.
+                {d.business.texting_status === "requested" && " Your business phone number request is in. Carrier approval usually takes 2–4 days once billing is on."}
+              </p>
+            </div>
           </div>
-          <Link href="/inbox" className="btn btn-primary">Try it now</Link>
+          <div className="flex flex-wrap gap-2.5">
+            <Link href="/settings#channels" className="btn btn-primary">Connect Instagram & Messenger</Link>
+            <Link href="/inbox" className="btn btn-ghost bg-card">Practice in Inbox</Link>
+          </div>
         </section>
       )}
 

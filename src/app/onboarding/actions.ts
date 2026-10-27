@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { currentUser } from "@/lib/auth";
 import { serviceRoleClient } from "@/lib/repo/supabase";
+import { TextingRegistrationInput } from "@/lib/validation";
 
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const money = z.string().trim().regex(/^\d{0,5}(\.\d{1,2})?$/, "Prices should be numbers like 95 or 95.50");
@@ -31,9 +32,10 @@ const Input = z.object({
   bufferMinutes: z.number().int().min(0).max(120),
   policies: z.string().max(2000),
   autonomy: z.enum(["auto", "approve_all", "situational"]),
+  texting: TextingRegistrationInput.nullable(),
 });
 
-export type OnboardingInput = z.infer<typeof Input>;
+export type OnboardingInput = z.input<typeof Input>;
 
 const cents = (v: string) => (v.trim() === "" ? null : Math.round(Number(v) * 100));
 
@@ -70,6 +72,9 @@ export async function createBusiness(raw: OnboardingInput): Promise<{ error: str
       policies: d.policies.trim(),
       plan: "trial",
       monthly_text_limit: 500,
+      ...(d.texting
+        ? { texting_status: "requested", texting_registration: { ...d.texting, ein: d.texting.ein || null }, texting_requested_at: new Date().toISOString() }
+        : {}),
     })
     .select("id")
     .single();

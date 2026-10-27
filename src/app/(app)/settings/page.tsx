@@ -1,15 +1,27 @@
-import { currentBusinessId, getRepo } from "@/lib/repo";
+import { currentBusinessId, getRepo, isDemo } from "@/lib/repo";
+import { currentUser } from "@/lib/auth";
+import { getChannelSecrets } from "@/lib/channels/meta";
+import { ChannelsPanel } from "@/components/ChannelsPanel";
 import { SettingsForm } from "@/components/SettingsForm";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { BUSINESS_TYPES } from "@/lib/templates";
 import { dollars } from "@/lib/validation";
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string }> }) {
   const repo = getRepo();
   const b = (await repo.getBusiness(await currentBusinessId()))!;
   const services = await repo.listServices(b.id);
   const type = BUSINESS_TYPES.find((t) => t.id === b.business_type) ?? BUSINESS_TYPES[BUSINESS_TYPES.length - 1];
-  const fmtPhone = (p: string | null) => (p && /^\+1\d{10}$/.test(p) ? `(${p.slice(2, 5)}) ${p.slice(5, 8)}-${p.slice(8)}` : p ?? "Not set up yet");
+  const fmtPhone = (p: string | null) => (p && /^\+1\d{10}$/.test(p) ? `(${p.slice(2, 5)}) ${p.slice(5, 8)}-${p.slice(8)}` : p);
+  const sp = await searchParams;
+  const notice = sp.connected ? { ok: true, text: `Connected ${sp.connected}. Bemby will answer new messages there.` } : sp.error ? { ok: false, text: sp.error } : null;
+  let pendingPages: { id: string; name: string }[] = [];
+  let email = "";
+  if (!isDemo()) {
+    const secrets = await getChannelSecrets(b.id).catch(() => null);
+    pendingPages = (secrets?.pending_pages ?? []).map((p) => ({ id: p.id, name: p.name }));
+    email = (await currentUser())?.email ?? "";
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -17,6 +29,17 @@ export default async function SettingsPage() {
         <h1 className="font-display text-3xl font-bold tracking-tight">Settings</h1>
         <p className="mt-1.5 text-sm text-muted">Your services, hours, and how much Bemby does on its own.</p>
       </header>
+
+      <ChannelsPanel
+        demo={isDemo()}
+        instagram={b.instagram_account_id ? b.instagram_username ?? "connected" : null}
+        messenger={b.messenger_page_id ? b.messenger_page_name ?? "your Page" : null}
+        pendingPages={pendingPages}
+        phone={fmtPhone(b.phone_number)}
+        textingStatus={b.texting_status ?? "none"}
+        email={email}
+        notice={notice}
+      />
 
       <SettingsForm autonomy={b.autonomy} askFirst={b.ask_first} paused={b.paused} />
 
@@ -33,12 +56,9 @@ export default async function SettingsPage() {
       />
 
       <div className="grid gap-6 md:grid-cols-2">
-        <section aria-label="Channels" className="card p-6">
-          <h2 className="mb-1.5 font-display text-xl font-semibold">Channels</h2>
+        <section aria-label="Calendars and tools" className="card p-6">
+          <h2 className="mb-1.5 font-display text-xl font-semibold">Calendars & tools</h2>
           {[
-            { name: "Your Bemby number", detail: `${fmtPhone(b.phone_number)} · give this to clients`, status: b.phone_number ? "Active" : "Not set up" },
-            { name: "Instagram DMs", detail: "Connect a Business or Creator account", status: b.instagram_account_id ? "Connected" : "Coming soon" },
-            { name: "Facebook Messenger", detail: "Connect your business Page", status: b.messenger_page_id ? "Connected" : "Coming soon" },
             { name: "Google Calendar", detail: "Two-way sync", status: "Coming soon" },
             { name: "Apple Calendar", detail: "Two-way sync", status: "Coming soon" },
             { name: "Vagaro", detail: "Sync appointments, clients and open times", status: "After launch" },
@@ -48,7 +68,7 @@ export default async function SettingsPage() {
                 <p className="text-sm font-semibold">{c.name}</p>
                 <p className="mt-0.5 text-[13px] text-muted">{c.detail}</p>
               </div>
-              <span className={`text-[13px] ${c.status === "Active" || c.status === "Connected" ? "text-ok" : "text-muted"}`}>{c.status}</span>
+              <span className="text-[13px] text-muted">{c.status}</span>
             </div>
           ))}
         </section>

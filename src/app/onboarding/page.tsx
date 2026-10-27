@@ -12,5 +12,5 @@ export default async function OnboardingPage() {
   if (!user) redirect("/login");
   const { data } = await serviceRoleClient().from("businesses").select("id").eq("owner_id", user.id).maybeSingle();
   if (data) redirect("/");
-  return <Onboarding />;
+  return <Onboarding email={user.email ?? ""} />;
 }

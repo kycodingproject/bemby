@@ -18,6 +18,7 @@ export function seedDemo(now: Date): MemoryDb {
     timezone: tz,
     phone_number: "+13105550123",
     instagram_account_id: "demo-ig",
+    instagram_username: "kiarahairstudio",
     messenger_page_id: null,
     autonomy: "situational",
     ask_first: { new_client: false, reschedule: true, discount: true, off_menu: true, upset: true, every_booking: false },

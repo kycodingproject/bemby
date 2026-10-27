@@ -23,3 +23,24 @@ export function hoursProblem(hours: z.infer<typeof HoursInput>): string | null {
   for (const ws of days) for (const w of ws ?? []) if (w.end <= w.start) return "Closing time has to be after opening time.";
   return null;
 }
+
+/** Carrier registration details for a business phone number (A2P 10DLC). */
+export const TextingRegistrationInput = z.object({
+  legal_name: z.string().trim().min(2, "Add your legal business name (or your full name if you're a sole proprietor)").max(120),
+  ein: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/[^\d]/g, ""))
+    .refine((v) => v === "" || v.length === 9, "An EIN has 9 digits. Leave it blank if you don't have one."),
+  street: z.string().trim().min(3, "Add your street address").max(120),
+  city: z.string().trim().min(2, "Add your city").max(60),
+  state: z.string().trim().regex(/^[A-Za-z]{2}$/, "Use the 2-letter state, like CA").transform((v) => v.toUpperCase()),
+  zip: z.string().trim().regex(/^\d{5}(-\d{4})?$/, "Add a 5-digit ZIP code"),
+  contact_phone: z
+    .string()
+    .trim()
+    .transform((v) => v.replace(/[^\d]/g, "").replace(/^1(?=\d{10}$)/, ""))
+    .refine((v) => v.length === 10, "Add a 10-digit US mobile number"),
+  contact_email: z.string().trim().email("Add a valid email"),
+});
+export type TextingRegistrationValues = z.input<typeof TextingRegistrationInput>;

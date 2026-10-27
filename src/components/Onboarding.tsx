@@ -7,6 +7,7 @@ import { BUSINESS_TYPES, servicesFor, type ServiceDraft } from "@/lib/templates"
 import type { Autonomy } from "@/lib/types";
 import { ServicesEditor } from "./ServicesEditor";
 import { HoursEditor, type Hours } from "./HoursEditor";
+import { emptyRegistration, NUMBER_PRICE, NumberRequestFields } from "./NumberRequest";
 
 const MODES: { id: Autonomy; title: string; desc: string }[] = [
   { id: "situational", title: "Depends on the situation (recommended)", desc: "Routine questions on autopilot. Reschedules, discounts and anything off-menu come to you first." },
@@ -15,9 +16,9 @@ const MODES: { id: Autonomy; title: string; desc: string }[] = [
 ];
 
 const DEFAULT_HOURS: Hours = Object.fromEntries((["tue", "wed", "thu", "fri", "sat"] as const).map((d) => [d, [{ start: "09:00", end: "18:00" }]]));
-const STEPS = ["Your business", "Services", "Hours", "Bemby's style"];
+const STEPS = ["Your business", "Services", "Hours", "Bemby's style", "Phone number"];
 
-export function Onboarding() {
+export function Onboarding({ email }: { email: string }) {
   const [step, setStep] = useState(0);
   const [type, setType] = useState("hair");
   const [businessName, setBusinessName] = useState("");
@@ -29,6 +30,8 @@ export function Onboarding() {
   const [buffer, setBuffer] = useState(15);
   const [policies, setPolicies] = useState("");
   const [autonomy, setAutonomy] = useState<Autonomy>("situational");
+  const [wantsNumber, setWantsNumber] = useState(false);
+  const [reg, setReg] = useState(emptyRegistration(email));
   const [error, setError] = useState<string | null>(null);
   const [busy, start] = useTransition();
   const t = BUSINESS_TYPES.find((x) => x.id === type)!;
@@ -48,6 +51,7 @@ export function Onboarding() {
         services: services.map((s) => ({ ...s, name: s.name.trim() })),
         hours: Object.fromEntries(Object.entries(hours).filter(([, w]) => w?.length)) as Record<string, { start: string; end: string }[]>,
         minNoticeHours: notice, bufferMinutes: buffer, policies, autonomy,
+        texting: wantsNumber ? reg : null,
       });
       if (res?.error) setError(res.error);
     });
@@ -72,7 +76,7 @@ export function Onboarding() {
         <div>
           <p className="text-[13px] text-brand-ink">Step {step + 1} of {STEPS.length}</p>
           <h1 className="mt-1.5 font-display text-[28px] font-bold leading-tight tracking-tight">
-            {["Tell Bemby about your business", "What do you offer?", "When can clients book?", "How hands-on do you want to be?"][step]}
+            {["Tell Bemby about your business", "What do you offer?", "When can clients book?", "How hands-on do you want to be?", "How should clients reach you?"][step]}
           </h1>
           <p className="mt-2 text-[15px] text-muted">
             {[
@@ -80,6 +84,7 @@ export function Onboarding() {
               `We started you with common ${t.label.toLowerCase()} services. Set your prices and pick what Bemby asks for before booking.`,
               "Bemby only offers times inside these hours, and never double-books.",
               "You can change this anytime in Settings.",
+              "Bemby answers Instagram and Facebook Messenger DMs right away. A business phone number for texting is optional.",
             ][step]}
           </p>
         </div>
@@ -174,6 +179,30 @@ export function Onboarding() {
             <p className="mt-2 rounded-2xl bg-soft p-4 text-sm leading-relaxed text-ink-2">
               Either way, Bemby never confirms an appointment on its own. Every booking lands on your calendar for you to approve.
             </p>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3" role="radiogroup" aria-label="Phone number">
+              {[
+                { on: false, title: "Start with Instagram & Messenger", desc: "Free. You'll connect your accounts on the next screen, and Bemby starts answering DMs today." },
+                { on: true, title: `Also get a business phone number (${NUMBER_PRICE} one-time)`, desc: `A dedicated number clients can text, separate from your personal phone. Carrier approval usually takes 2–4 days, and Bemby answers DMs while you wait.` },
+              ].map((o) => (
+                <button
+                  key={String(o.on)}
+                  type="button"
+                  role="radio"
+                  aria-checked={wantsNumber === o.on}
+                  onClick={() => setWantsNumber(o.on)}
+                  className={`flex flex-col gap-1.5 rounded-[18px] p-4 text-left ${wantsNumber === o.on ? "bg-brand-soft shadow-[inset_0_0_0_2px_var(--color-brand)]" : "bg-soft shadow-[inset_0_0_0_1px_rgba(26,24,48,0.08)] hover:bg-hover"}`}
+                >
+                  <span className="font-display text-[15px] font-semibold">{o.title}</span>
+                  <span className="text-sm text-muted">{o.desc}</span>
+                </button>
+              ))}
+            </div>
+            {wantsNumber && <NumberRequestFields value={reg} onChange={setReg} />}
           </div>
         )}
 
