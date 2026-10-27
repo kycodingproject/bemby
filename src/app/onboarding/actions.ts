@@ -25,7 +25,8 @@ const Input = z.object({
     )
     .min(1, "Add at least one service")
     .max(40),
-  hours: z.record(z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]), z.array(z.object({ start: time, end: time })).max(3)),
+  // partialRecord: closed days are simply left out (z.record with an enum key would require all 7)
+  hours: z.partialRecord(z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]), z.array(z.object({ start: time, end: time })).max(3)),
   minNoticeHours: z.number().int().min(0).max(168),
   bufferMinutes: z.number().int().min(0).max(120),
   policies: z.string().max(2000),
@@ -43,7 +44,7 @@ export async function createBusiness(raw: OnboardingInput): Promise<{ error: str
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Something's missing." };
   const d = parsed.data;
   if (!Object.values(d.hours).some((w) => w.length)) return { error: "Pick at least one day you're open." };
-  for (const ws of Object.values(d.hours)) for (const w of ws) if (w.end <= w.start) return { error: "Closing time has to be after opening time." };
+  for (const ws of Object.values(d.hours)) for (const w of ws ?? []) if (w.end <= w.start) return { error: "Closing time has to be after opening time." };
   try {
     Intl.DateTimeFormat("en-US", { timeZone: d.timezone });
   } catch {
