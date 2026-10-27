@@ -78,6 +78,7 @@ export interface Message {
   media: MediaRef[];
   status: "sent" | "received" | "pending_approval" | "discarded" | "failed";
   approval_reason: string | null;
+  provider_message_id?: string | null;
   created_at: string;
 }
 

@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bemby
 
-## Getting Started
+Bemby is an AI receptionist for service businesses (hair stylists, estheticians, tattoo artists, nail techs, lash artists, barbers). Each business gets a dedicated number. Bemby answers texts and DMs, collects what the business needs (like current and inspo photos), offers open times, and sends booking requests to the owner to approve.
 
-First, run the development server:
+## What's built
+
+| Area | Status |
+|---|---|
+| Dashboard: Home (goals, XP, streaks), Inbox, Calendar, Specials, Settings | Working, on demo data |
+| AI booking agent (Claude): availability, booking requests, reschedules, hand-off, photo intake | Working |
+| Approval rules: reply on its own / ask first / depends on the situation | Working |
+| Owner take-over and edit-before-send | Working |
+| Texting via Twilio (incoming webhook, outgoing replies, photo storage, STOP handling) | Built, needs Twilio keys |
+| Database schema with row-level security (Supabase) | Built, needs a Supabase project |
+| Sign-in and onboarding | Next |
+| Instagram and Messenger | Next |
+| Stripe billing ($19 first month, then $39) | Next |
+| Google / Apple calendar sync | Next |
+| Vagaro | After launch |
+
+## Run it
 
 ```bash
+npm install
+cp .env.example .env.local   # add ANTHROPIC_API_KEY to let Bemby reply in the demo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000. Without Supabase keys the site runs on built-in sample data (Kiara Hair Studio). In the Inbox, the **Try Bemby** box lets you text the studio as if you were a client.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Check the booking logic without any keys:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npx tsx scripts/test-agent.mts
+```
 
-## Learn More
+## How it fits together
 
-To learn more about Next.js, take a look at the following resources:
+- `src/lib/ai/` — Bemby's instructions (`prompt.ts`) and the tool loop (`agent.ts`)
+- `src/lib/scheduling.ts` — open times from business hours, buffers, notice and existing bookings
+- `src/lib/inbound.ts` — what happens when any client message arrives
+- `src/lib/channels/deliver.ts` — sending replies (Twilio today)
+- `src/lib/repo/` — data access: Supabase in production, in-memory for the demo
+- `src/app/api/webhooks/twilio` — Twilio posts incoming texts here
+- `supabase/migrations/` — database schema
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Costs (per business, per month, estimated)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Twilio number $1.15 + about 1¢ per text + carrier campaign fee. AI replies about $0.20–$2 depending on volume and photos.

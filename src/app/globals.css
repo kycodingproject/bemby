@@ -1,26 +1,83 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Bemby light theme. Purple brand, matching the prototype. */
+@theme {
+  --color-page: #f6f5fb;
+  --color-card: #ffffff;
+  --color-soft: #f3f1fa;
+  --color-hover: #f1eefb;
+  --color-line: rgb(26 24 48 / 0.08);
+  --color-ink: #1a1830;
+  --color-ink-2: #3e3b57;
+  --color-muted: #5f5c78;
+  --color-faint: #9a97b0;
+  --color-brand: #6a4bf5;
+  --color-brand-hover: #5a3be6;
+  --color-brand-ink: #5b3fe0;
+  --color-brand-soft: #ede9ff;
+  --color-brand-chip: #e4deff;
+  --color-brand-chip-ink: #3d27a8;
+  --color-track: #e6e3f0;
+  --color-ok: #0b7f65;
+  --color-ok-soft: #e3f6f0;
+  --color-warn: #a3570a;
+  --color-warn-soft: #fff1e0;
+  --color-warn-chip: #ffe7cc;
+  --color-danger: #c2185b;
+  --font-sans: "Inter Variable", system-ui, sans-serif;
+  --font-display: "Sora Variable", "Inter Variable", system-ui, sans-serif;
+  --radius-card: 22px;
+  --shadow-card: 0 1px 2px rgb(40 30 90 / 0.06), 0 12px 32px rgb(60 40 140 / 0.08);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+@layer components {
+  .card {
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn:disabled { opacity: 0.55; cursor: default; }
+  .btn-primary { background: var(--color-brand); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--color-brand-hover); }
+  .btn-ghost { background: #f1eff8; color: var(--color-ink); box-shadow: inset 0 0 0 1px rgb(26 24 48 / 0.1); }
+  .btn-ghost:hover:not(:disabled) { background: #e7e3f5; }
+  .btn-warn { background: var(--color-warn-chip); color: #7a3f05; }
+  .btn-warn:hover:not(:disabled) { background: #ffddb5; }
+  .input {
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 12px;
+    border: 1px solid rgb(26 24 48 / 0.12);
+    background: var(--color-soft);
+    color: var(--color-ink);
+    font-size: 14px;
+    width: 100%;
+  }
+  .input:focus { outline: 2px solid var(--color-brand); outline-offset: 1px; }
+  .orb {
+    border-radius: 9999px;
+    background: radial-gradient(circle at 32% 28%, #fff 0%, #d4ccff 10%, #6a4bf5 42%, #3a2d9c 78%, #160f45 100%);
+    box-shadow: 0 0 24px rgb(106 75 245 / 0.4), inset -6px -8px 16px rgb(10 6 40 / 0.5);
+  }
+  .label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted); }
 }
