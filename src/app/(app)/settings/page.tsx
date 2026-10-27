@@ -112,7 +112,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
               </div>
             </div>
           ) : (
-            <p className="text-[13px] text-muted">Billing turns on with the Stripe connection.</p>
+            <p className="text-[13px] text-muted">Payments aren&apos;t connected yet, so Bemby is free for now. Add STRIPE_SECRET_KEY in Vercel and redeploy to turn on the plan picker.</p>
           )}
         </section>
       </div>
