@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isMemory } from "@/lib/repo";
-import { serviceRoleClient } from "@/lib/repo/supabase";
+import { serviceRoleClient, supabaseUrl } from "@/lib/repo/supabase";
 import { ensureSupabaseDemo } from "@/lib/repo/supabase-demo";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export async function GET() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
   const status: Record<string, unknown> = {
     ANTHROPIC_API_KEY: has("ANTHROPIC_API_KEY") ? "set" : "MISSING",
-    NEXT_PUBLIC_SUPABASE_URL: !url ? "MISSING" : /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(url.trim()) ? "set" : "set, but doesn't look like https://xxxx.supabase.co",
+    NEXT_PUBLIC_SUPABASE_URL: !url ? "MISSING" : /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/.test(url.trim()) ? "set" : `set with extra text; using ${supabaseUrl()}`,
     SUPABASE_SERVICE_ROLE_KEY: has("SUPABASE_SERVICE_ROLE_KEY") ? "set" : "MISSING",
     SITE_PASSWORD: has("SITE_PASSWORD") ? "set" : "MISSING",
     data_mode: isMemory() ? "temporary memory (database not connected)" : "Supabase database",

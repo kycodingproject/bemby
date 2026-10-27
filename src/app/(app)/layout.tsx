@@ -30,7 +30,7 @@ function SetupProblem({ message }: { message: string }) {
     ? "The database tables aren't there yet. Run supabase/migrations/0001_init.sql in the Supabase SQL Editor, then reload."
     : /invalid api key|jwt|apikey|unauthorized|401/i.test(message)
       ? "Supabase rejected the key. Check that SUPABASE_SERVICE_ROLE_KEY is the secret (service_role) key, not the anon/publishable one, then redeploy."
-      : /fetch failed|ENOTFOUND|getaddrinfo/i.test(message)
+      : /fetch failed|ENOTFOUND|getaddrinfo|invalid path/i.test(message)
         ? "The site can't reach Supabase. Check that NEXT_PUBLIC_SUPABASE_URL is your Project URL (https://xxxx.supabase.co), then redeploy."
         : "Send this message to Claude to fix it.";
   return (

@@ -120,8 +120,26 @@ export class SupabaseRepo implements Repo {
 }
 
 export function serviceRoleClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim().replace(/\/$/, "");
+  const url = supabaseUrl();
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
   if (!url || !key) throw new Error("Supabase is not configured");
   return createClient(url, key, { auth: { persistSession: false } });
+}
+
+/**
+ * Accepts the project URL in any of the forms people paste:
+ * https://ref.supabase.co, .../rest/v1/, or the dashboard link supabase.com/dashboard/project/ref.
+ */
+export function supabaseUrl(): string | undefined {
+  const raw = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (!raw) return undefined;
+  const dash = raw.match(/supabase\.com\/dashboard\/project\/([a-z0-9]+)/i);
+  if (dash) return `https://${dash[1]}.supabase.co`;
+  const proj = raw.match(/^(?:https?:\/\/)?([a-z0-9-]+)\.supabase\.co/i);
+  if (proj) return `https://${proj[1]}.supabase.co`;
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return raw;
+  }
 }

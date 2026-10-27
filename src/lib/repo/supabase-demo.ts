@@ -46,7 +46,7 @@ export function ensureSupabaseDemo(sb: SupabaseClient) {
   if (!ready) {
     ready = (async () => {
       const { data, error } = await sb.from("businesses").select("id").eq("id", DEMO_BUSINESS_ID).maybeSingle();
-      if (error) throw new Error(`Supabase: ${error.message}. Did you run supabase/migrations/0001_init.sql?`);
+      if (error) throw new Error(`Supabase: ${error.message}. (If this mentions a missing table, run supabase/migrations/0001_init.sql in the SQL Editor.)`);
       if (!data) await seed(sb);
     })().catch((e) => {
       ready = null;
