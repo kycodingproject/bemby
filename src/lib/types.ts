@@ -26,6 +26,11 @@ export interface Business {
   texting_status?: "none" | "requested" | "pending" | "active" | "failed";
   texting_registration?: TextingRegistration | Record<string, never>;
   texting_requested_at?: string | null;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+  subscription_status?: string;
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean;
 }
 
 /** What carriers need to approve a business for texting (A2P 10DLC). */

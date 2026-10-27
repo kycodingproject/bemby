@@ -3,6 +3,9 @@ import type { Repo } from "./repo/types";
 import type { Channel, MediaRef } from "./types";
 import { runBemby, type MediaLoader } from "./ai/agent";
 import { deliver } from "./channels/deliver";
+import { hasActivePlan } from "./billing";
+import { DEMO_TEST_PHONE } from "./repo/seed";
+import { isDemo } from "./repo";
 
 const STOP_WORDS = ["stop", "stopall", "unsubscribe", "cancel", "end", "quit"];
 const START_WORDS = ["start", "unstop", "yes"];
@@ -44,6 +47,10 @@ export async function handleInbound(opts: {
   if (channel === "sms" && START_WORDS.includes(word) && client.sms_opt_out) {
     await repo.updateClient(client.id, { sms_opt_out: false });
   }
+
+  // No paid plan: keep the message for the owner, but Bemby stays quiet (the practice chat always works).
+  const business = await repo.getBusiness(businessId);
+  if (!isDemo() && business && !hasActivePlan(business) && from !== DEMO_TEST_PHONE) return { inbound, reply: null };
 
   const result = await runBemby({ repo, conversationId: conversation.id, loadMedia: opts.loadMedia });
   let reply = result.message;

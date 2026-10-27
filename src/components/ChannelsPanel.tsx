@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { chooseMessengerPage, disconnectChannel, requestBusinessNumber } from "@/app/(app)/actions";
+import { upgradeOrCheckoutPro } from "@/app/(app)/billing/actions";
 import { emptyRegistration, NumberRequestFields } from "./NumberRequest";
 import { NUMBER_APPROVAL, PLANS } from "@/lib/plans";
 
@@ -14,6 +15,7 @@ export function ChannelsPanel(props: {
   textingStatus: "none" | "requested" | "pending" | "active" | "failed";
   email: string;
   notice: { ok: boolean; text: string } | null;
+  billing: boolean;
 }) {
   const [busy, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export function ChannelsPanel(props: {
 
   const statusText: Record<typeof props.textingStatus, string> = {
     none: "",
-    requested: "Requested. Carrier approval starts once billing is connected, then usually takes 2–4 days.",
+    requested: "We're setting up your number. Carrier approval usually takes 2–4 days, and Bemby answers DMs meanwhile.",
     pending: "Waiting on carrier approval, usually 2–4 days. We'll let you know when it's live.",
     active: "Live. Give this number to clients.",
     failed: "Carriers didn't approve the registration. We'll reach out to fix the details.",
@@ -106,8 +108,13 @@ export function ChannelsPanel(props: {
               setErr(null);
               start(async () => {
                 const r = await requestBusinessNumber(reg);
-                if (r?.error) setErr(r.error);
-                else setShowForm(false);
+                if (r?.error) return setErr(r.error);
+                if (props.billing) {
+                  const u = await upgradeOrCheckoutPro();
+                  if (u.error) return setErr(u.error);
+                  if (u.url) return void (window.location.href = u.url);
+                }
+                setShowForm(false);
               });
             }}
           >

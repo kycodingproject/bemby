@@ -5,6 +5,7 @@ import { z } from "zod";
 import { currentUser } from "@/lib/auth";
 import { serviceRoleClient } from "@/lib/repo/supabase";
 import { TextingRegistrationInput } from "@/lib/validation";
+import { billingEnabled } from "@/lib/billing";
 
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 const money = z.string().trim().regex(/^\d{0,5}(\.\d{1,2})?$/, "Prices should be numbers like 95 or 95.50");
@@ -70,8 +71,8 @@ export async function createBusiness(raw: OnboardingInput): Promise<{ error: str
       buffer_minutes: d.bufferMinutes,
       min_notice_hours: d.minNoticeHours,
       policies: d.policies.trim(),
-      plan: d.texting ? "pro" : "trial",
-      monthly_text_limit: d.texting ? 1000 : 0,
+      plan: "trial",
+      monthly_text_limit: 0,
       ...(d.texting
         ? { texting_status: "requested", texting_registration: { ...d.texting, ein: d.texting.ein || null }, texting_requested_at: new Date().toISOString() }
         : {}),
@@ -100,5 +101,6 @@ export async function createBusiness(raw: OnboardingInput): Promise<{ error: str
     business_id: biz.id, label: "Book 20 appointments with Bemby this month", metric: "ai_bookings", target: 20,
     period_start: `${y}-${mm}-01`, period_end: `${y}-${mm}-${new Date(Date.UTC(y, m, 0)).getUTCDate()}`, reward_xp: 200,
   });
-  redirect("/?welcome=1");
+  // Next: pick a plan (Pro is pre-selected if they asked for a number). Without Stripe set up, go straight in.
+  redirect(billingEnabled() ? "/billing" : "/?welcome=1");
 }
