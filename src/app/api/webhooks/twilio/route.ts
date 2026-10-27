@@ -6,6 +6,8 @@ import type { MediaRef } from "@/lib/types";
 import { storeTwilioMedia, loadStoredMedia } from "@/lib/media";
 
 export const runtime = "nodejs";
+// Bemby waits up to a few minutes for the client to finish typing before replying.
+export const maxDuration = 300;
 
 const EMPTY_TWIML = '<?xml version="1.0" encoding="UTF-8"?><Response></Response>';
 

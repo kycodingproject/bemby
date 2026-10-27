@@ -116,6 +116,7 @@ export async function simulateClientMessage(body: string, photoLabels: string[] 
     await handleInbound({
       repo, businessId: business.id, channel: "sms", from: DEMO_TEST_PHONE, body: body.slice(0, 1000),
       media: photoLabels.map((label) => ({ path: `demo:${label}`, content_type: "image/jpeg", label })),
+      replyDelaySeconds: 0,
     });
   } catch (e) {
     return { error: (e as Error).message };
@@ -132,12 +133,13 @@ export async function resetDemoData() {
 
 // ---------- Settings ----------
 
-export async function updateSettings(patch: { autonomy?: Autonomy; paused?: boolean; ask_first?: Partial<Record<AskFirstKey, boolean>> }) {
+export async function updateSettings(patch: { autonomy?: Autonomy; paused?: boolean; ask_first?: Partial<Record<AskFirstKey, boolean>>; reply_delay_seconds?: number }) {
   const { repo, business } = await ownedBusiness();
   const next: Partial<Business> = {};
   if (patch.autonomy && ["auto", "approve_all", "situational"].includes(patch.autonomy)) next.autonomy = patch.autonomy;
   if (typeof patch.paused === "boolean") next.paused = patch.paused;
   if (patch.ask_first) next.ask_first = { ...business.ask_first, ...patch.ask_first };
+  if (typeof patch.reply_delay_seconds === "number" && [0, 30, 60, 120].includes(patch.reply_delay_seconds)) next.reply_delay_seconds = patch.reply_delay_seconds;
   await repo.updateBusiness(business.id, next);
   refresh();
 }

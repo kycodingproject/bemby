@@ -48,7 +48,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         billing={billingEnabled()}
       />
 
-      <SettingsForm autonomy={b.autonomy} askFirst={b.ask_first} paused={b.paused} />
+      <SettingsForm autonomy={b.autonomy} askFirst={b.ask_first} paused={b.paused} replyDelay={b.reply_delay_seconds ?? 60} />
 
       <ProfileEditor
         key={b.id}

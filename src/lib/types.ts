@@ -15,6 +15,8 @@ export interface Business {
   autonomy: Autonomy;
   ask_first: Record<AskFirstKey, boolean>;
   paused: boolean;
+  /** Seconds to wait after the client's last message before replying (0 = right away). Missing until migration 0004 runs. */
+  reply_delay_seconds?: number;
   hours: Partial<Record<DayKey, { start: string; end: string }[]>>;
   buffer_minutes: number;
   min_notice_hours: number;

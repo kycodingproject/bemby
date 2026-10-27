@@ -32,6 +32,8 @@ export async function GET() {
       status.migration_0002 = m2.error ? "NOT RUN (run 0002_channels.sql)" : "done";
       const m3 = await sb.from("businesses").select("subscription_status").limit(1);
       status.migration_0003 = m3.error ? "NOT RUN (run 0003_billing.sql)" : "done";
+      const m4 = await sb.from("businesses").select("reply_delay_seconds").limit(1);
+      status.migration_0004 = m4.error ? "NOT RUN (run 0004_reply_delay.sql)" : "done";
     } catch (e) {
       status.database = `error: ${(e as Error).message}`;
     }

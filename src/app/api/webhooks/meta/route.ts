@@ -6,6 +6,8 @@ import { getChannelSecrets, validMetaSignature } from "@/lib/channels/meta";
 import type { MediaRef } from "@/lib/types";
 
 export const runtime = "nodejs";
+// Bemby waits up to a few minutes for the client to finish typing before replying.
+export const maxDuration = 300;
 
 interface MessagingEvent {
   sender?: { id: string };

@@ -7,6 +7,9 @@ import { hasActivePlan } from "./billing";
 import { DEMO_TEST_PHONE } from "./repo/seed";
 import { isDemo } from "./repo";
 
+/** Webhook functions may run up to 300s on Vercel; keep the wait well inside that. */
+export const MAX_DELAY_SECONDS = 180;
+
 const STOP_WORDS = ["stop", "stopall", "unsubscribe", "cancel", "end", "quit"];
 const START_WORDS = ["start", "unstop", "yes"];
 
@@ -23,6 +26,8 @@ export async function handleInbound(opts: {
   media?: MediaRef[];
   providerMessageId?: string;
   loadMedia?: MediaLoader;
+  /** Override the business setting (the practice chat answers right away). */
+  replyDelaySeconds?: number;
 }) {
   const { repo, businessId, channel, from } = opts;
   const client = await repo.findOrCreateClient(businessId, channel, from);
@@ -51,6 +56,16 @@ export async function handleInbound(opts: {
   // No paid plan: keep the message for the owner, but Bemby stays quiet (the practice chat always works).
   const business = await repo.getBusiness(businessId);
   if (!isDemo() && business && !hasActivePlan(business) && from !== DEMO_TEST_PHONE) return { inbound, reply: null };
+
+  // Wait so clients can finish sending a few messages, then answer them all at once.
+  // Every new message restarts the wait: only the task for the latest message replies.
+  const delay = Math.max(0, Math.min(MAX_DELAY_SECONDS, opts.replyDelaySeconds ?? business?.reply_delay_seconds ?? 60));
+  if (delay > 0) {
+    await new Promise((r) => setTimeout(r, delay * 1000));
+    const recent = await repo.listMessages(conversation.id, 20);
+    const latestClient = [...recent].reverse().find((m) => m.author === "client");
+    if (latestClient && latestClient.id !== inbound.id) return { inbound, reply: null };
+  }
 
   const result = await runBemby({ repo, conversationId: conversation.id, loadMedia: opts.loadMedia });
   let reply = result.message;

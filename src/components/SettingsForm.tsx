@@ -19,7 +19,14 @@ const RULES: { key: AskFirstKey; label: string }[] = [
   { key: "every_booking", label: "Every booking, no matter what" },
 ];
 
-export function SettingsForm(props: { autonomy: Autonomy; askFirst: Record<AskFirstKey, boolean>; paused: boolean }) {
+const DELAYS: { s: number; label: string }[] = [
+  { s: 0, label: "Right away" },
+  { s: 30, label: "30 sec" },
+  { s: 60, label: "1 min" },
+  { s: 120, label: "2 min" },
+];
+
+export function SettingsForm(props: { autonomy: Autonomy; askFirst: Record<AskFirstKey, boolean>; paused: boolean; replyDelay: number }) {
   const [busy, start] = useTransition();
   return (
     <section aria-label="How Bemby replies" className="card flex flex-col gap-4 p-6">
@@ -48,6 +55,30 @@ export function SettingsForm(props: { autonomy: Autonomy; askFirst: Record<AskFi
             </button>
           );
         })}
+      </div>
+      <div className="flex flex-col gap-2 rounded-2xl bg-soft p-4">
+        <p className="text-sm font-semibold">Wait before replying</p>
+        <p className="text-[13px] leading-relaxed text-muted">
+          Gives clients time to send all their messages and photos. If they send another one, Bemby waits again, then answers everything at once.
+        </p>
+        <div role="radiogroup" aria-label="Wait before replying" className="mt-1 flex flex-wrap gap-2">
+          {DELAYS.map((d) => {
+            const on = props.replyDelay === d.s;
+            return (
+              <button
+                key={d.s}
+                type="button"
+                role="radio"
+                aria-checked={on}
+                disabled={busy}
+                onClick={() => start(() => updateSettings({ reply_delay_seconds: d.s }))}
+                className={`min-h-11 rounded-full px-4 text-sm font-semibold ${on ? "bg-brand text-white" : "bg-card shadow-[inset_0_0_0_1px_rgba(26,24,48,0.12)] hover:bg-hover"}`}
+              >
+                {d.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
       {props.autonomy === "situational" && (
         <fieldset className="flex flex-col gap-1 rounded-2xl bg-soft p-4">
