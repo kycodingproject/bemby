@@ -6,7 +6,7 @@ import { ensureSupabaseDemo, resetSupabaseDemo } from "./supabase-demo";
 import type { Repo } from "./types";
 
 /** No database connected: data lives in server memory (local development only). */
-export const isMemory = () => !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY;
+export const isMemory = () => !process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || !process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
 /**
  * Sample-studio mode: the dashboard shows "Kiara Hair Studio" and nothing is texted to real phones.
