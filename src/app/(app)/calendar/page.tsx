@@ -1,4 +1,4 @@
-import { currentBusinessId, getRepo, isDemo } from "@/lib/repo";
+import { currentBusinessId, getRepo } from "@/lib/repo";
 import { photoUrl } from "@/lib/media";
 import { addDaysLocal, formatSlot, formatTime, localDateKey, zonedParts, zonedTimeToUtc } from "@/lib/time";
 import { CalendarView, type CalAppt } from "@/components/CalendarView";
@@ -51,7 +51,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
         notes: a.notes,
         intake: Object.entries(a.intake ?? {}),
         conversationId: a.conversation_id,
-        photos: await Promise.all(a.photos.map(async (p) => ({ ...p, url: isDemo() ? null : await photoUrl(p) }))),
+        photos: await Promise.all(a.photos.map(async (p) => ({ ...p, url: await photoUrl(p) }))),
       };
     }),
   );

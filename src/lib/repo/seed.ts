@@ -41,15 +41,15 @@ export function seedDemo(now: Date): MemoryDb {
     { key: "hair_length", label: "Current hair length", type: "text" },
   ];
   const services: Service[] = [
-    s("svc-silk", "Silk press", 95, 150, 0, [...hairPhotos, { key: "color_history", label: "Any color or chemical treatment in the last 6 months", type: "text" }]),
-    s("svc-knotless", "Medium knotless braids", 220, 360, 40, [
+    s("00000000-0000-4000-8000-000000000101", "Silk press", 95, 150, 0, [...hairPhotos, { key: "color_history", label: "Any color or chemical treatment in the last 6 months", type: "text" }]),
+    s("00000000-0000-4000-8000-000000000102", "Medium knotless braids", 220, 360, 40, [
       { key: "length", label: "Length they want (shoulder, mid-back, waist)", type: "text" },
       { key: "inspo_photo", label: "An inspo photo", type: "photo" },
       { key: "hair_provided", label: "Whether they are bringing their own braiding hair", type: "text" },
     ]),
-    s("svc-trim", "Trim", 35, 45, 0, []),
-    s("svc-blowout", "Wash + blowout", 55, 60, 0, [{ key: "current_photo", label: "A photo of their hair right now", type: "photo" }]),
-    s("svc-sewin", "Sew-in", 180, 180, 0, [
+    s("00000000-0000-4000-8000-000000000103", "Trim", 35, 45, 0, []),
+    s("00000000-0000-4000-8000-000000000104", "Wash + blowout", 55, 60, 0, [{ key: "current_photo", label: "A photo of their hair right now", type: "photo" }]),
+    s("00000000-0000-4000-8000-000000000105", "Sew-in", 180, 180, 0, [
       { key: "inspo_photo", label: "An inspo photo", type: "photo" },
       { key: "bundles", label: "Bundle length and whether they already have them", type: "text" },
     ]),

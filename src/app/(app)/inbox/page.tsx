@@ -33,7 +33,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   const selected = rows.find((r) => r.cv.id === c) ?? rows[0];
   const messages = selected ? await repo.listMessages(selected.cv.id, 100) : [];
   const withUrls = await Promise.all(
-    messages.map(async (m) => ({ ...m, media: await Promise.all(m.media.map(async (ref) => ({ ...ref, url: isDemo() ? null : await photoUrl(ref) }))) })),
+    messages.map(async (m) => ({ ...m, media: await Promise.all(m.media.map(async (ref) => ({ ...ref, url: await photoUrl(ref) }))) })),
   );
 
   return (

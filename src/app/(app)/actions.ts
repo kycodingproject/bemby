@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import Anthropic from "@anthropic-ai/sdk";
-import { currentBusinessId, getRepo, isDemo } from "@/lib/repo";
-import { resetDemo } from "@/lib/repo/memory";
+import { currentBusinessId, getRepo, isDemo, resetSampleStudio } from "@/lib/repo";
 import { DEMO_TEST_PHONE } from "@/lib/repo/seed";
 import { deliver } from "@/lib/channels/deliver";
 import { handleInbound } from "@/lib/inbound";
@@ -125,7 +124,7 @@ export async function simulateClientMessage(body: string, photoLabels: string[] 
 
 export async function resetDemoData() {
   if (!isDemo()) return;
-  resetDemo();
+  await resetSampleStudio();
   refresh();
 }
 
