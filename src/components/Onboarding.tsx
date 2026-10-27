@@ -7,7 +7,8 @@ import { BUSINESS_TYPES, servicesFor, type ServiceDraft } from "@/lib/templates"
 import type { Autonomy } from "@/lib/types";
 import { ServicesEditor } from "./ServicesEditor";
 import { HoursEditor, type Hours } from "./HoursEditor";
-import { emptyRegistration, NUMBER_PRICE, NumberRequestFields } from "./NumberRequest";
+import { emptyRegistration, NumberRequestFields } from "./NumberRequest";
+import { PLANS } from "@/lib/plans";
 
 const MODES: { id: Autonomy; title: string; desc: string }[] = [
   { id: "situational", title: "Depends on the situation (recommended)", desc: "Routine questions on autopilot. Reschedules, discounts and anything off-menu come to you first." },
@@ -186,8 +187,8 @@ export function Onboarding({ email }: { email: string }) {
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-3" role="radiogroup" aria-label="Phone number">
               {[
-                { on: false, title: "Start with Instagram & Messenger", desc: "Free. You'll connect your accounts on the next screen, and Bemby starts answering DMs today." },
-                { on: true, title: `Also get a business phone number (${NUMBER_PRICE} one-time)`, desc: `A dedicated number clients can text, separate from your personal phone. Carrier approval usually takes 2–4 days, and Bemby answers DMs while you wait.` },
+                { on: false, title: `Instagram & Messenger: ${PLANS.trial.price} first month`, desc: `Then ${PLANS.social.price}/month. You'll connect your accounts next, and Bemby starts answering DMs today.` },
+                { on: true, title: `Add a business phone number & texting: ${PLANS.pro.price}/month`, desc: `${PLANS.pro.name}: a dedicated number clients can text, separate from your personal phone, with ${PLANS.pro.texts.toLocaleString()} texts a month. Carrier approval usually takes 2–4 days, and Bemby answers DMs while you wait. (The ${PLANS.trial.price} trial covers DMs only.)` },
               ].map((o) => (
                 <button
                   key={String(o.on)}

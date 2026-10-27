@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { chooseMessengerPage, disconnectChannel, requestBusinessNumber } from "@/app/(app)/actions";
-import { emptyRegistration, NUMBER_APPROVAL, NUMBER_PRICE, NumberRequestFields } from "./NumberRequest";
+import { emptyRegistration, NumberRequestFields } from "./NumberRequest";
+import { NUMBER_APPROVAL, PLANS } from "@/lib/plans";
 
 export function ChannelsPanel(props: {
   demo: boolean;
@@ -91,11 +92,11 @@ export function ChannelsPanel(props: {
           <p className="text-sm font-semibold">Business phone number</p>
           <p className="mt-0.5 text-[13px] text-muted">
             {props.phone ? `${props.phone} · ` : ""}
-            {props.textingStatus === "none" ? `A dedicated number clients can text. ${NUMBER_PRICE} one-time setup, ${NUMBER_APPROVAL}.` : statusText[props.textingStatus]}
+            {props.textingStatus === "none" ? `A dedicated number clients can text, on ${PLANS.pro.name} (${PLANS.pro.price}/month). ${NUMBER_APPROVAL}.` : statusText[props.textingStatus]}
           </p>
         </div>
         {props.textingStatus === "none" && !showForm && (
-          props.demo ? <span className="text-[13px] text-muted">Available on your own account</span> : <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>Get a number</button>
+          props.demo ? <span className="text-[13px] text-muted">Available on your own account</span> : <button type="button" className="btn btn-primary" onClick={() => setShowForm(true)}>Get a number (Pro)</button>
         )}
         {showForm && (
           <form
@@ -112,7 +113,7 @@ export function ChannelsPanel(props: {
           >
             <NumberRequestFields value={reg} onChange={setReg} />
             <div className="flex flex-wrap gap-2">
-              <button className="btn btn-primary" disabled={busy}>{busy ? "Sending…" : `Request my number (${NUMBER_PRICE})`}</button>
+              <button className="btn btn-primary" disabled={busy}>{busy ? "Sending…" : `Upgrade to Pro & request my number (${PLANS.pro.price}/mo)`}</button>
               <button type="button" className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
             </div>
           </form>

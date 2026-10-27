@@ -20,7 +20,7 @@ export function AuthForm(props: {
       <section className="card w-full max-w-md p-8">
         <h1 className="font-display text-2xl font-bold tracking-tight">{signup ? "Create your account" : "Welcome back"}</h1>
         <p className="mt-2 text-sm text-muted">
-          {signup ? "Your AI receptionist, set up in about 5 minutes. First month $19." : "Sign in to see your inbox and calendar."}
+          {signup ? "Your AI receptionist, set up in about 5 minutes. First month just $4.99." : "Sign in to see your inbox and calendar."}
         </p>
         <form action={formAction} className="mt-6 flex flex-col gap-4">
           <label className="flex flex-col gap-1.5 text-[13px] text-muted">

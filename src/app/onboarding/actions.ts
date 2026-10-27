@@ -70,8 +70,8 @@ export async function createBusiness(raw: OnboardingInput): Promise<{ error: str
       buffer_minutes: d.bufferMinutes,
       min_notice_hours: d.minNoticeHours,
       policies: d.policies.trim(),
-      plan: "trial",
-      monthly_text_limit: 500,
+      plan: d.texting ? "pro" : "trial",
+      monthly_text_limit: d.texting ? 1000 : 0,
       ...(d.texting
         ? { texting_status: "requested", texting_registration: { ...d.texting, ein: d.texting.ein || null }, texting_requested_at: new Date().toISOString() }
         : {}),

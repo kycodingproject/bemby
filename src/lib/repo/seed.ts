@@ -29,7 +29,7 @@ export function seedDemo(now: Date): MemoryDb {
     buffer_minutes: 15,
     min_notice_hours: 12,
     policies: "A $40 deposit holds knotless braid appointments. 24-hour notice for cancellations. Come with hair detangled and product-free. Studio is in Inglewood; the exact address is sent after booking.",
-    plan: "bemby",
+    plan: "pro",
     monthly_text_limit: 1000,
   };
 

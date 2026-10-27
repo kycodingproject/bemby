@@ -2,8 +2,6 @@
 
 import type { TextingRegistrationValues } from "@/lib/validation";
 
-export const NUMBER_PRICE = "$19.99";
-export const NUMBER_APPROVAL = "usually approved in 2–4 days";
 
 export const emptyRegistration = (email = ""): TextingRegistrationValues => ({
   legal_name: "", ein: "", street: "", city: "", state: "", zip: "", contact_phone: "", contact_email: email,

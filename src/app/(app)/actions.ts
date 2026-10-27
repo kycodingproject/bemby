@@ -283,6 +283,8 @@ export async function requestBusinessNumber(raw: unknown) {
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check the details." };
   await repo.updateBusiness(business.id, {
     texting_status: "requested",
+    plan: "pro",
+    monthly_text_limit: 1000,
     texting_registration: { ...parsed.data, ein: parsed.data.ein || null },
     texting_requested_at: new Date().toISOString(),
   });

@@ -44,6 +44,17 @@ npx tsx scripts/test-agent.mts
 - `src/app/api/webhooks/twilio` — Twilio posts incoming texts here
 - `supabase/migrations/` — database schema
 
+## Plans
+
+| Plan | Price | Includes |
+|---|---|---|
+| Trial | $4.99 first month | Instagram & Messenger DMs |
+| Bemby Social | $19.99 / month | Instagram & Messenger DMs |
+| Bemby Pro | $39.99 / month | Social + business phone number and texting (1,000 texts/month) |
+
+Prices live in `src/lib/plans.ts`.
+
 ## Costs (per business, per month, estimated)
 
-Twilio number $1.15 + about 1¢ per text + carrier campaign fee. AI replies about $0.20–$2 depending on volume and photos.
+- Every plan: AI replies about $0.20–$2 depending on volume and photos; Stripe fees ~3%.
+- Pro only: Twilio number $1.15 + carrier campaign fee (~$2–10) + about 1¢ per text, plus a one-time ~$19.50 carrier registration.

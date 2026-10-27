@@ -6,6 +6,7 @@ import { SettingsForm } from "@/components/SettingsForm";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { BUSINESS_TYPES } from "@/lib/templates";
 import { dollars } from "@/lib/validation";
+import { EXTRA_TEXTS, PLANS, planOf } from "@/lib/plans";
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string }> }) {
   const repo = getRepo();
@@ -13,6 +14,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const services = await repo.listServices(b.id);
   const type = BUSINESS_TYPES.find((t) => t.id === b.business_type) ?? BUSINESS_TYPES[BUSINESS_TYPES.length - 1];
   const fmtPhone = (p: string | null) => (p && /^\+1\d{10}$/.test(p) ? `(${p.slice(2, 5)}) ${p.slice(5, 8)}-${p.slice(8)}` : p);
+  const plan = planOf(b.plan);
   const sp = await searchParams;
   const notice = sp.connected ? { ok: true, text: `Connected ${sp.connected}. Bemby will answer new messages there.` } : sp.error ? { ok: false, text: sp.error } : null;
   let pendingPages: { id: string; name: string }[] = [];
@@ -75,9 +77,17 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
         <section aria-label="Plan" className="card flex flex-col gap-3.5 p-6">
           <h2 className="font-display text-xl font-semibold">Plan</h2>
-          <p className="flex items-baseline gap-2"><span className="font-display text-4xl font-bold">$39</span><span className="text-sm text-muted">/ month · Bemby</span></p>
-          <p className="text-sm text-ink-2">Includes {b.monthly_text_limit.toLocaleString()} texts a month. Instagram and Messenger chats don&apos;t count toward your limit.</p>
-          <p className="text-[13px] leading-relaxed text-muted">Need more? Add 500 texts for $10. First month is $19. Billing turns on with the Stripe connection.</p>
+          <p className="flex items-baseline gap-2">
+            <span className="font-display text-4xl font-bold">{plan.price}</span>
+            <span className="text-sm text-muted">{plan.period} · {plan.name}</span>
+          </p>
+          <p className="text-sm text-ink-2">{plan.summary}</p>
+          {plan.id === "pro" ? (
+            <p className="text-[13px] leading-relaxed text-muted">Includes {b.monthly_text_limit.toLocaleString()} texts a month. Instagram and Messenger chats don&apos;t count. {EXTRA_TEXTS}</p>
+          ) : (
+            <p className="text-[13px] leading-relaxed text-muted">Want clients to text you too? {PLANS.pro.name} adds a business phone number for {PLANS.pro.price}/month. Request it under &ldquo;Where clients reach you.&rdquo;</p>
+          )}
+          <p className="text-[13px] text-muted">Billing turns on with the Stripe connection.</p>
         </section>
       </div>
     </div>
