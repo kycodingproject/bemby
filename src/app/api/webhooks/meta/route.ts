@@ -24,10 +24,11 @@ interface MessagingEvent {
 export async function GET(req: NextRequest) {
   const p = req.nextUrl.searchParams;
   const token = process.env.META_VERIFY_TOKEN?.trim();
-  if (p.get("hub.mode") === "subscribe" && token && p.get("hub.verify_token") === token) {
-    return new NextResponse(p.get("hub.challenge") ?? "", { status: 200 });
-  }
-  return new NextResponse("forbidden", { status: 403 });
+  // Plain-English answers so a failed setup is easy to diagnose by opening this URL in a browser.
+  if (!token) return new NextResponse("META_VERIFY_TOKEN is not set on the server yet (add it in Vercel, then redeploy).", { status: 403 });
+  if (p.get("hub.mode") !== "subscribe") return new NextResponse("Webhook is online. Waiting for Meta's verification request.", { status: 400 });
+  if ((p.get("hub.verify_token") ?? "").trim() !== token) return new NextResponse("The verify token doesn't match META_VERIFY_TOKEN in Vercel.", { status: 403 });
+  return new NextResponse(p.get("hub.challenge") ?? "", { status: 200 });
 }
 
 /** Instagram DMs (object "instagram") and Messenger messages (object "page") arrive here. */
