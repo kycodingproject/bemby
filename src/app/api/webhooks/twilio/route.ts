@@ -11,7 +11,8 @@ const EMPTY_TWIML = '<?xml version="1.0" encoding="UTF-8"?><Response></Response>
 
 /** Twilio calls this for every text sent to a Bemby number. */
 export async function POST(req: NextRequest) {
-  const form = await req.formData();
+  const form = await req.formData().catch(() => null);
+  if (!form) return new NextResponse("bad request", { status: 400 });
   const params: Record<string, string> = {};
   form.forEach((v, k) => (params[k] = String(v)));
 
