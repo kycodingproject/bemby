@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "@/app/(auth)/actions";
 
 const ICONS: Record<string, React.ReactNode> = {
   home: <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" />,
@@ -31,15 +32,16 @@ const LINKS = [
   { href: "/settings", label: "Settings", icon: "settings" },
 ];
 
-export function Sidebar({ needsYou, demo }: { needsYou: number; demo: boolean }) {
+export function Sidebar({ needsYou, demo, businessName }: { needsYou: number; demo: boolean; businessName: string }) {
   const path = usePathname();
   return (
-    <aside className="w-full shrink-0 border-b border-line bg-card px-4 py-4 md:sticky md:top-0 md:h-dvh md:w-60 md:border-b-0 md:border-r md:px-4 md:py-7">
+    <aside className="w-full shrink-0 border-b border-line bg-card px-4 py-4 md:sticky md:top-0 md:flex md:h-dvh md:w-60 md:flex-col md:border-b-0 md:border-r md:px-4 md:py-7">
       <div className="flex items-center gap-2.5 px-2">
         <Image src="/bemby-logo.png" alt="" width={30} height={31} className="drop-shadow-[0_4px_8px_rgba(106,75,245,0.35)]" priority />
         <span className="font-display text-xl font-bold tracking-tight">bemby</span>
         {demo && <span className="ml-auto rounded-full bg-warn-chip px-2 py-0.5 text-[11px] font-semibold text-[#7a3f05]">Demo</span>}
       </div>
+      {businessName && <p className="mt-1 hidden truncate px-2 text-[13px] text-muted md:block">{businessName}</p>}
       <nav aria-label="Main" className="mt-4 flex gap-1 overflow-x-auto md:mt-7 md:flex-col">
         {LINKS.map((l) => {
           const on = l.href === "/" ? path === "/" : path.startsWith(l.href);
@@ -63,6 +65,11 @@ export function Sidebar({ needsYou, demo }: { needsYou: number; demo: boolean })
           );
         })}
       </nav>
+      {!demo && (
+        <form action={signOut} className="mt-2 md:mt-auto md:pt-6">
+          <button className="min-h-11 rounded-xl px-3.5 text-sm text-muted hover:bg-hover hover:text-ink">Sign out</button>
+        </form>
+      )}
     </aside>
   );
 }

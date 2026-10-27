@@ -3,8 +3,8 @@
 import { useState, useTransition } from "react";
 import { resetDemoData, simulateClientMessage } from "@/app/(app)/actions";
 
-/** Demo-only panel: text Bemby as a pretend client to see how it handles a booking. */
-export function TestBemby({ businessName }: { businessName: string }) {
+/** Text your own Bemby as a pretend client to check how it handles a booking. */
+export function TestBemby({ businessName, canReset }: { businessName: string; canReset: boolean }) {
   const [text, setText] = useState("");
   const [photos, setPhotos] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,9 +17,13 @@ export function TestBemby({ businessName }: { businessName: string }) {
           <span className="orb size-6" />
           <p className="font-display font-semibold">Try Bemby: text {businessName} like a client</p>
         </div>
-        <button type="button" className="text-sm text-brand-ink underline" onClick={() => start(() => resetDemoData())}>
-          Reset demo data
-        </button>
+        {canReset ? (
+          <button type="button" className="text-sm text-brand-ink underline" onClick={() => start(() => resetDemoData())}>
+            Reset demo data
+          </button>
+        ) : (
+          <span className="text-[13px] text-muted">Practice chat. Nothing is sent to a real phone.</span>
+        )}
       </div>
       <form
         className="flex flex-wrap gap-2.5"
@@ -27,7 +31,7 @@ export function TestBemby({ businessName }: { businessName: string }) {
           e.preventDefault();
           if (!text.trim() && !photos) return;
           const body = text;
-          const labels = photos ? ["Current hair", "Inspo"] : [];
+          const labels = photos ? (canReset ? ["Current hair", "Inspo"] : ["Sample photo 1", "Sample photo 2"]) : [];
           setText("");
           setPhotos(false);
           setError(null);

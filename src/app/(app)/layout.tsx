@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
 import { currentBusinessId, getRepo, isDemo } from "@/lib/repo";
 import { countNeedsYou } from "@/lib/queries";
@@ -6,10 +7,14 @@ export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   let needsYou = 0;
+  let businessName = "";
   try {
     const businessId = await currentBusinessId();
-    needsYou = await countNeedsYou(getRepo(), businessId);
+    const repo = getRepo();
+    needsYou = await countNeedsYou(repo, businessId);
+    businessName = (await repo.getBusiness(businessId))?.name ?? "";
   } catch (e) {
+    unstable_rethrow(e); // let sign-in / onboarding redirects through
     // Setup problems (missing tables, wrong key) are shown plainly so they can be fixed.
     // The whole site is behind the password, so only the owner sees this.
     console.error("setup error", e);
@@ -17,7 +22,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
-      <Sidebar needsYou={needsYou} demo={isDemo()} />
+      <Sidebar needsYou={needsYou} demo={isDemo()} businessName={businessName} />
       <main className="min-w-0 flex-1 px-4 pb-14 pt-6 md:px-10 md:pt-9">
         <div className="mx-auto max-w-[1180px]">{children}</div>
       </main>

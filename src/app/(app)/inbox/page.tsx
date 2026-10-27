@@ -44,7 +44,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
         <p className="mt-1.5 text-sm text-muted">Every text and DM in one place. Watch Bemby work, or jump in anytime.</p>
       </header>
 
-      {isDemo() && <TestBemby businessName={business.name} />}
+      <TestBemby businessName={business.name} canReset={isDemo()} />
 
       <div className="flex flex-wrap items-start gap-6">
         <section aria-label="Conversations" className="card flex min-w-64 flex-1 basis-64 flex-col gap-1 p-2.5">

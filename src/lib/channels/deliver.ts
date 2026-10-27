@@ -3,6 +3,7 @@ import twilio from "twilio";
 import type { Repo } from "../repo/types";
 import type { Conversation, Message } from "../types";
 import { isDemo } from "../repo";
+import { DEMO_TEST_PHONE } from "../repo/seed";
 
 let _twilio: ReturnType<typeof twilio> | null = null;
 export function twilioClient() {
@@ -20,10 +21,11 @@ export function twilioClient() {
  * In demo mode nothing leaves the app; the message just shows as sent.
  */
 export async function deliver(repo: Repo, conversation: Conversation, message: Message): Promise<Message> {
-  if (isDemo()) return repo.updateMessage(message.id, { status: "sent" });
   const business = await repo.getBusiness(conversation.business_id);
   const client = await repo.getClient(conversation.client_id);
   if (!business || !client) throw new Error("missing business or client");
+  // The sample studio and the "Test Bemby" chat never send real texts.
+  if (isDemo() || client.phone === DEMO_TEST_PHONE) return repo.updateMessage(message.id, { status: "sent" });
 
   try {
     if (conversation.channel === "sms") {

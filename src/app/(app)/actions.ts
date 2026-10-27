@@ -105,10 +105,9 @@ export async function sendOwnerMessage(conversationId: string, body: string) {
   refresh();
 }
 
-/** Demo only: text Bemby as if you were a client, to try it out before connecting a real number. */
+/** Text your own Bemby as a pretend client (from a test number that never receives real texts). */
 export async function simulateClientMessage(body: string, photoLabels: string[] = []) {
-  if (!isDemo()) throw new Error("Only available in demo mode");
-  if (!process.env.ANTHROPIC_API_KEY) return { error: "Add ANTHROPIC_API_KEY to .env.local to let Bemby reply." };
+  if (!process.env.ANTHROPIC_API_KEY) return { error: "Add ANTHROPIC_API_KEY in Vercel to let Bemby reply." };
   const { repo, business } = await ownedBusiness();
   try {
     await handleInbound({

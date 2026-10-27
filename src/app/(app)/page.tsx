@@ -5,8 +5,9 @@ import { GoalAdder } from "@/components/GoalAdder";
 
 const BADGE_COLORS = ["#6a4bf5", "#0b7f65", "#a3570a", "#c2185b"];
 
-export default async function HomePage() {
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
   const d = await homeData(getRepo(), await currentBusinessId());
+  const welcome = (await searchParams).welcome === "1";
   const r = 70;
   const circ = 2 * Math.PI * r;
   const pct = Math.min(1, d.bookedThisMonth / d.monthGoal);
@@ -31,6 +32,17 @@ export default async function HomePage() {
           {d.streak > 0 && <span className="text-warn">{d.streak}-day streak</span>}
         </div>
       </header>
+
+      {welcome && (
+        <section className="card flex flex-wrap items-center gap-4 border-brand/30 bg-brand-soft p-5">
+          <div className="orb size-10 shrink-0" />
+          <div className="min-w-56 flex-1">
+            <p className="font-display text-lg font-semibold">You&apos;re all set up, {d.business.owner_name}!</p>
+            <p className="mt-1 text-sm text-ink-2">Try Bemby in your Inbox: text your business like a client and watch it book. Your real Bemby number turns on when texting is connected.</p>
+          </div>
+          <Link href="/inbox" className="btn btn-primary">Try it now</Link>
+        </section>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <section className="card flex flex-wrap items-center gap-6 p-6">
