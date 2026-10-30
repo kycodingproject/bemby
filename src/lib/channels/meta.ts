@@ -108,7 +108,7 @@ export async function listFacebookPages(code: string, redirectUri: string): Prom
 }
 
 export async function subscribePage(pageId: string, pageToken: string) {
-  await json(await fetch(`${FB_GRAPH}/${pageId}/subscribed_apps?subscribed_fields=messages&access_token=${encodeURIComponent(pageToken)}`, { method: "POST" }));
+  await json(await fetch(`${FB_GRAPH}/${pageId}/subscribed_apps?subscribed_fields=messages,message_echoes&access_token=${encodeURIComponent(pageToken)}`, { method: "POST" }));
 }
 
 // ---------- Sending ----------
