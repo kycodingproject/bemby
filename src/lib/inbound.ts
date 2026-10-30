@@ -6,6 +6,7 @@ import { deliver } from "./channels/deliver";
 import { hasActivePlan } from "./billing";
 import { DEMO_TEST_PHONE } from "./repo/seed";
 import { isDemo } from "./repo";
+import { chatUnlocked, QUIET_NOTE, triggerWordsFor } from "./triggers";
 
 /** Webhook functions may run up to 300s on Vercel; keep the wait well inside that. */
 export const MAX_DELAY_SECONDS = 180;
@@ -67,8 +68,30 @@ export async function handleInbound(opts: {
     if (latestClient && latestClient.id !== inbound.id) return { inbound, reply: null };
   }
 
-  const result = await runBemby({ repo, conversationId: conversation.id, loadMedia: opts.loadMedia });
+  // Stay out of personal chats: only answer once a booking word or service name comes up (or the owner says so).
+  if (business && !isDemo()) {
+    const services = await repo.listServices(businessId);
+    const words = triggerWordsFor(business.trigger_words ?? [], services.map((s) => s.name));
+    const recent = await repo.listMessages(conversation.id, 60);
+    if (!chatUnlocked(recent, words)) {
+      if (!recent.some((m) => m.author === "system" && m.body.startsWith(QUIET_NOTE))) {
+        await repo.addMessage({
+          business_id: businessId, conversation_id: conversation.id, author: "system", media: [], status: "sent", approval_reason: null,
+          body: `${QUIET_NOTE} Tap "Let Bemby answer" if this is a client.`,
+        });
+      }
+      return { inbound, reply: null };
+    }
+  }
+
+  return { inbound, ...(await answerNow(repo, conversation.id, opts.loadMedia)) };
+}
+
+/** Run Bemby on a conversation and send its reply (or hold it for approval). */
+export async function answerNow(repo: Repo, conversationId: string, loadMedia?: MediaLoader) {
+  const result = await runBemby({ repo, conversationId, loadMedia });
   let reply = result.message;
-  if (reply && reply.status === "sent") reply = await deliver(repo, conversation, reply);
-  return { inbound, reply, result };
+  const conversation = await repo.getConversation(conversationId);
+  if (reply && reply.status === "sent" && conversation) reply = await deliver(repo, conversation, reply);
+  return { reply, result };
 }

@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import type { Conversation, MediaRef, Message } from "@/lib/types";
-import { approveMessage, discardMessage, sendOwnerMessage, setConversationMode } from "@/app/(app)/actions";
+import { approveMessage, discardMessage, letBembyAnswer, sendOwnerMessage, setConversationMode } from "@/app/(app)/actions";
+import { QUIET_NOTE } from "@/lib/triggers";
 import { PhotoTile } from "./PhotoTile";
 
 type Msg = Omit<Message, "media"> & { media: (MediaRef & { url?: string | null })[] };
@@ -14,6 +15,10 @@ export function Thread(props: { conversation: Conversation; clientName: string; 
   const [busy, start] = useTransition();
   const ownerMode = cv.mode === "owner";
   const visible = messages.filter((m) => m.status !== "discarded");
+  // Bemby is holding back because no booking words came up yet.
+  const lastQuiet = visible.findLastIndex((m) => m.author === "system" && m.body.startsWith(QUIET_NOTE));
+  const quiet = cv.mode === "ai" && lastQuiet >= 0 && !visible.slice(lastQuiet).some((m) => m.author === "ai" || (m.author === "system" && m.body.startsWith("Bemby is back")));
+  const [quietError, setQuietError] = useState("");
 
   return (
     <section aria-label={`Conversation with ${props.clientName}`} className="card flex min-w-0 flex-[999_1_420px] flex-col">
@@ -32,6 +37,27 @@ export function Thread(props: { conversation: Conversation; clientName: string; 
           </button>
         )}
       </div>
+
+      {quiet && (
+        <div className="mx-5 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-soft px-4 py-3 text-sm text-ink-2">
+          <span>Bemby hasn&apos;t replied because this doesn&apos;t look like a booking chat yet. It will jump in if they ask about booking.</span>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={busy}
+            onClick={() =>
+              start(async () => {
+                setQuietError("");
+                const r = await letBembyAnswer(cv.id);
+                if (r && "error" in r && r.error) setQuietError(r.error);
+              })
+            }
+          >
+            {busy ? "Bemby is replying…" : "Let Bemby answer"}
+          </button>
+          {quietError && <p role="alert" className="w-full text-danger">{quietError}</p>}
+        </div>
+      )}
 
       {cv.mode === "needs_owner" && (
         <div className="mx-5 mt-4 rounded-2xl bg-warn-soft px-4 py-3 text-sm text-warn">

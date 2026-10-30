@@ -17,6 +17,8 @@ export interface Business {
   paused: boolean;
   /** Seconds to wait after the client's last message before replying (0 = right away). Missing until migration 0004 runs. */
   reply_delay_seconds?: number;
+  /** Owner's extra words that let Bemby answer a chat (built-in booking words and service names always count). Missing until migration 0005 runs. */
+  trigger_words?: string[];
   hours: Partial<Record<DayKey, { start: string; end: string }[]>>;
   buffer_minutes: number;
   min_notice_hours: number;

@@ -62,8 +62,13 @@ export async function POST(req: NextRequest) {
       for (const ev of entry.messaging ?? []) {
         const msg = ev.message;
         const from = ev.sender?.id;
-        // Skip our own sends (echoes), deleted messages, and anything without a sender.
-        if (!msg || msg.is_echo || msg.is_deleted || !from || from === entry.id) continue;
+        if (msg?.is_echo) {
+          // A message sent FROM the business. If it wasn't sent by Bemby, the owner typed it in the Instagram/Messenger app.
+          await handleOwnerAppReply(repo, business.id, channel, ev).catch((e) => console.error("[meta webhook] echo failed", e));
+          continue;
+        }
+        // Skip deleted messages and anything without a sender.
+        if (!msg || msg.is_deleted || !from || from === entry.id) continue;
         try {
           const media: MediaRef[] = [];
           for (const a of msg.attachments ?? []) {
@@ -85,6 +90,34 @@ export async function POST(req: NextRequest) {
     }
   });
   return NextResponse.json({ ok: true });
+}
+
+/**
+ * The owner replied to someone straight from the Instagram or Messenger app.
+ * Show it in the Bemby inbox and have Bemby step back from that chat, so it never talks over the owner
+ * (this is also how friends and family stay Bemby-free: answer them yourself once and Bemby stays out).
+ */
+async function handleOwnerAppReply(repo: ReturnType<typeof getRepo>, businessId: string, channel: "instagram" | "messenger", ev: MessagingEvent) {
+  const mid = ev.message?.mid;
+  const to = ev.recipient?.id;
+  if (!mid || !to) return;
+  // Bemby's own sends echo back too; give delivery a moment to record their ids before deciding.
+  await new Promise((r) => setTimeout(r, 8000));
+  const client = await repo.findOrCreateClient(businessId, channel, to);
+  const conversation = await repo.findOrCreateConversation(businessId, client.id, channel);
+  const recent = await repo.listMessages(conversation.id, 40);
+  if (recent.some((m) => m.provider_message_id === mid)) return; // sent through Bemby
+  await repo.addMessage({
+    business_id: businessId, conversation_id: conversation.id, author: "owner", body: ev.message?.text ?? "[You sent an attachment]",
+    media: [], status: "sent", approval_reason: null, provider_message_id: mid,
+  });
+  if (conversation.mode === "ai") {
+    await repo.updateConversation(conversation.id, { mode: "owner" });
+    await repo.addMessage({
+      business_id: businessId, conversation_id: conversation.id, author: "system", media: [], status: "sent", approval_reason: null,
+      body: `You replied from ${channel === "instagram" ? "Instagram" : "Messenger"}, so Bemby stepped back from this chat. Tap "Hand back to Bemby" to let it answer again.`,
+    });
+  }
 }
 
 /** Best effort: show the client's Instagram/Facebook name in the inbox instead of a number. */

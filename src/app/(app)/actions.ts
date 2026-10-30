@@ -8,7 +8,10 @@ import { cents, dollars, HoursInput, hoursProblem, ServiceInput, TextingRegistra
 import { currentBusinessId, getRepo, isDemo, resetSampleStudio } from "@/lib/repo";
 import { DEMO_TEST_PHONE } from "@/lib/repo/seed";
 import { deliver } from "@/lib/channels/deliver";
-import { handleInbound } from "@/lib/inbound";
+import { answerNow, handleInbound } from "@/lib/inbound";
+import { loadStoredMedia } from "@/lib/media";
+import { BACK_NOTE } from "@/lib/triggers";
+import { hasActivePlan } from "@/lib/billing";
 import { formatSlot } from "@/lib/time";
 import type { AskFirstKey, Autonomy, Business } from "@/lib/types";
 
@@ -97,9 +100,31 @@ export async function setConversationMode(id: string, mode: "ai" | "owner") {
   await repo.updateConversation(id, { mode });
   await repo.addMessage({
     business_id: business.id, conversation_id: id, author: "system", media: [], status: "sent", approval_reason: null,
-    body: mode === "owner" ? "You took over. Bemby is paused in this chat." : "Bemby is back on this chat.",
+    body: mode === "owner" ? "You took over. Bemby is paused in this chat." : BACK_NOTE,
   });
   refresh();
+}
+
+/** The owner says this quiet chat is a client: Bemby answers now and keeps answering. */
+export async function letBembyAnswer(id: string) {
+  const { repo, business } = await ownedBusiness();
+  const c = await repo.getConversation(id);
+  if (!c || c.business_id !== business.id) return { error: "Chat not found." };
+  if (c.mode !== "ai") await repo.updateConversation(id, { mode: "ai" });
+  await repo.addMessage({ business_id: business.id, conversation_id: id, author: "system", media: [], status: "sent", approval_reason: null, body: `${BACK_NOTE} It will answer this person from now on.` });
+  if (!isDemo() && !hasActivePlan(business)) {
+    refresh();
+    return { error: "Bemby is off until you pick a plan." };
+  }
+  try {
+    await answerNow(repo, id, loadStoredMedia);
+  } catch (e) {
+    console.error("letBembyAnswer failed", e);
+    refresh();
+    return { error: "Bemby couldn't reply just now. Try again in a minute." };
+  }
+  refresh();
+  return { ok: true };
 }
 
 export async function sendOwnerMessage(conversationId: string, body: string) {
@@ -133,12 +158,15 @@ export async function resetDemoData() {
 
 // ---------- Settings ----------
 
-export async function updateSettings(patch: { autonomy?: Autonomy; paused?: boolean; ask_first?: Partial<Record<AskFirstKey, boolean>>; reply_delay_seconds?: number }) {
+export async function updateSettings(patch: { autonomy?: Autonomy; paused?: boolean; ask_first?: Partial<Record<AskFirstKey, boolean>>; reply_delay_seconds?: number; trigger_words?: string[] }) {
   const { repo, business } = await ownedBusiness();
   const next: Partial<Business> = {};
   if (patch.autonomy && ["auto", "approve_all", "situational"].includes(patch.autonomy)) next.autonomy = patch.autonomy;
   if (typeof patch.paused === "boolean") next.paused = patch.paused;
   if (patch.ask_first) next.ask_first = { ...business.ask_first, ...patch.ask_first };
+  if (Array.isArray(patch.trigger_words)) {
+    next.trigger_words = [...new Set(patch.trigger_words.map((w) => String(w).trim().toLowerCase().slice(0, 40)).filter((w) => w.length >= 2))].slice(0, 50);
+  }
   if (typeof patch.reply_delay_seconds === "number" && [0, 30, 60, 120].includes(patch.reply_delay_seconds)) next.reply_delay_seconds = patch.reply_delay_seconds;
   await repo.updateBusiness(business.id, next);
   refresh();

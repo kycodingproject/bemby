@@ -1,6 +1,7 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
+import { DEFAULT_TRIGGER_WORDS } from "@/lib/triggers";
 import { updateSettings } from "@/app/(app)/actions";
 import type { AskFirstKey, Autonomy } from "@/lib/types";
 
@@ -26,8 +27,10 @@ const DELAYS: { s: number; label: string }[] = [
   { s: 120, label: "2 min" },
 ];
 
-export function SettingsForm(props: { autonomy: Autonomy; askFirst: Record<AskFirstKey, boolean>; paused: boolean; replyDelay: number }) {
+export function SettingsForm(props: { autonomy: Autonomy; askFirst: Record<AskFirstKey, boolean>; paused: boolean; replyDelay: number; triggerWords: string[]; serviceNames: string[] }) {
   const [busy, start] = useTransition();
+  const [words, setWords] = useState(props.triggerWords.join(", "));
+  const [saved, setSaved] = useState(false);
   return (
     <section aria-label="How Bemby replies" className="card flex flex-col gap-4 p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -55,6 +58,37 @@ export function SettingsForm(props: { autonomy: Autonomy; askFirst: Record<AskFi
             </button>
           );
         })}
+      </div>
+      <div className="flex flex-col gap-2 rounded-2xl bg-soft p-4">
+        <p className="text-sm font-semibold">Only answer booking chats</p>
+        <p className="text-[13px] leading-relaxed text-muted">
+          Bemby stays quiet in chats with friends, family and random DMs. It only replies once someone uses a booking word or names one of your services. You can also tap
+          &ldquo;Let Bemby answer&rdquo; on any chat in your Inbox, and if you reply to someone yourself in Instagram or Messenger, Bemby steps back from that chat.
+        </p>
+        <p className="text-[13px] text-muted">Words that wake Bemby up:</p>
+        <ul className="flex flex-wrap gap-1.5" aria-label="Built-in booking words">
+          {[...DEFAULT_TRIGGER_WORDS, ...props.serviceNames.map((n) => n.toLowerCase())].map((w) => (
+            <li key={w} className="rounded-full bg-card px-2.5 py-1 text-xs text-ink-2 shadow-[inset_0_0_0_1px_rgba(26,24,48,0.1)]">{w}</li>
+          ))}
+        </ul>
+        <form
+          className="mt-1 flex flex-wrap items-end gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSaved(false);
+            start(async () => {
+              await updateSettings({ trigger_words: words.split(",") });
+              setSaved(true);
+            });
+          }}
+        >
+          <label className="flex min-w-60 flex-1 flex-col gap-1.5 text-[13px] text-muted">
+            Your own words (separate with commas)
+            <input className="input" value={words} onChange={(e) => { setWords(e.target.value); setSaved(false); }} placeholder="e.g. braids, touch up, fill" />
+          </label>
+          <button className="btn btn-ghost" disabled={busy}>Save words</button>
+          {saved && <span role="status" className="text-sm text-ok">Saved</span>}
+        </form>
       </div>
       <div className="flex flex-col gap-2 rounded-2xl bg-soft p-4">
         <p className="text-sm font-semibold">Wait before replying</p>
