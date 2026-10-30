@@ -14,6 +14,8 @@ const Input = z.object({
   businessType: z.string().min(1).max(30),
   businessName: z.string().trim().min(1, "Add your business name").max(80),
   ownerName: z.string().trim().min(1, "Add your first name").max(40),
+  assistantName: z.string().trim().min(1, "Give your receptionist a name").max(30),
+  assistantRole: z.enum(["assistant", "booking receptionist"]),
   timezone: z.string().min(1).max(60),
   services: z
     .array(
@@ -64,6 +66,8 @@ export async function createBusiness(raw: OnboardingInput): Promise<{ error: str
       owner_id: user.id,
       name: d.businessName,
       owner_name: d.ownerName,
+      assistant_name: d.assistantName,
+      assistant_role: d.assistantRole,
       business_type: d.businessType,
       timezone: d.timezone,
       autonomy: d.autonomy,

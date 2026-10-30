@@ -54,6 +54,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         key={b.id}
         name={b.name}
         ownerName={b.owner_name}
+        assistantName={b.assistant_name ?? ""}
+        assistantRole={b.assistant_role ?? "assistant"}
         services={services.map((s) => ({ id: s.id, name: s.name, price: dollars(s.price_cents), minutes: s.duration_minutes, deposit: s.deposit_cents ? dollars(s.deposit_cents) : "", intake: s.intake }))}
         suggestions={type.asks}
         hours={b.hours}

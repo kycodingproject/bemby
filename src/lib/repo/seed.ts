@@ -25,6 +25,8 @@ export function seedDemo(now: Date): MemoryDb {
     paused: false,
     reply_delay_seconds: 60,
     trigger_words: [],
+    assistant_name: "Mia",
+    assistant_role: "assistant",
     hours: Object.fromEntries(
       (["mon", "tue", "wed", "thu", "fri", "sat"] as const).map((d) => [d, [{ start: d === "sat" ? "08:00" : "09:00", end: d === "sat" ? "16:00" : "18:00" }]]),
     ),

@@ -1,3 +1,6 @@
+export type AssistantRole = "assistant" | "booking receptionist";
+export const ASSISTANT_ROLES: AssistantRole[] = ["assistant", "booking receptionist"];
+
 export type Channel = "sms" | "instagram" | "messenger";
 export type Autonomy = "auto" | "approve_all" | "situational";
 export type AskFirstKey = "new_client" | "reschedule" | "discount" | "off_menu" | "upset" | "every_booking";
@@ -19,6 +22,9 @@ export interface Business {
   reply_delay_seconds?: number;
   /** Owner's extra words that let Bemby answer a chat (built-in booking words and service names always count). Missing until migration 0005 runs. */
   trigger_words?: string[];
+  /** The receptionist's name clients see, e.g. "Mia". Missing until migration 0006 runs. */
+  assistant_name?: string | null;
+  assistant_role?: AssistantRole;
   hours: Partial<Record<DayKey, { start: string; end: string }[]>>;
   buffer_minutes: number;
   min_notice_hours: number;

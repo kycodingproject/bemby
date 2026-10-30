@@ -218,12 +218,15 @@ export async function saveSpecial(input: { serviceId: string | null; deal: strin
 
 // ---------- Business profile (Settings) ----------
 
-export async function saveBusinessDetails(input: { name: string; ownerName: string }) {
+export async function saveBusinessDetails(input: { name: string; ownerName: string; assistantName: string; assistantRole: string }) {
   const { repo, business } = await ownedBusiness();
   const name = input.name.trim().slice(0, 80);
   const ownerName = input.ownerName.trim().slice(0, 40);
+  const assistantName = input.assistantName.trim().slice(0, 30);
   if (!name || !ownerName) return { error: "Add your business name and first name." };
-  await repo.updateBusiness(business.id, { name, owner_name: ownerName });
+  if (!assistantName) return { error: "Give your receptionist a name." };
+  const assistantRole = input.assistantRole === "booking receptionist" ? "booking receptionist" : "assistant";
+  await repo.updateBusiness(business.id, { name, owner_name: ownerName, assistant_name: assistantName, assistant_role: assistantRole });
   refresh();
   return { ok: true };
 }

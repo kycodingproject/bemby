@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { saveBusinessDetails, saveHours, saveServices } from "@/app/(app)/actions";
 import type { ServiceDraft } from "@/lib/templates";
-import type { IntakeItem } from "@/lib/types";
+import { ASSISTANT_ROLES, type AssistantRole, type IntakeItem } from "@/lib/types";
 import { ServicesEditor } from "./ServicesEditor";
 import { HoursEditor, type Hours } from "./HoursEditor";
 
@@ -44,6 +44,8 @@ function SaveBar({ s, onSave, label = "Save changes" }: { s: ReturnType<typeof u
 export function ProfileEditor(props: {
   name: string;
   ownerName: string;
+  assistantName: string;
+  assistantRole: AssistantRole;
   services: ServiceDraft[];
   suggestions: IntakeItem[];
   hours: Hours;
@@ -53,6 +55,8 @@ export function ProfileEditor(props: {
 }) {
   const [name, setName] = useState(props.name);
   const [ownerName, setOwnerName] = useState(props.ownerName);
+  const [assistantName, setAssistantName] = useState(props.assistantName);
+  const [assistantRole, setAssistantRole] = useState<AssistantRole>(props.assistantRole);
   const [services, setServices] = useState(props.services);
   const [hours, setHours] = useState(props.hours);
   const [notice, setNotice] = useState(props.minNoticeHours);
@@ -76,7 +80,30 @@ export function ProfileEditor(props: {
             <input className="input" value={ownerName} onChange={(e) => { setOwnerName(e.target.value); details.touch(); }} />
           </label>
         </div>
-        <SaveBar s={details} onSave={() => details.save(() => saveBusinessDetails({ name, ownerName }))} />
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="flex flex-[1_1_200px] flex-col gap-1.5 text-[13px] text-muted">
+            Your receptionist&apos;s name
+            <input className="input" value={assistantName} maxLength={30} placeholder="e.g. Mia" onChange={(e) => { setAssistantName(e.target.value); details.touch(); }} />
+          </label>
+          <div role="radiogroup" aria-label="Receptionist title" className="flex flex-wrap gap-2">
+            {ASSISTANT_ROLES.map((r) => (
+              <button
+                key={r}
+                type="button"
+                role="radio"
+                aria-checked={assistantRole === r}
+                onClick={() => { setAssistantRole(r); details.touch(); }}
+                className={`min-h-11 rounded-full px-4 text-sm font-semibold ${assistantRole === r ? "bg-brand text-white" : "bg-soft shadow-[inset_0_0_0_1px_rgba(26,24,48,0.12)] hover:bg-hover"}`}
+              >
+                {r === "assistant" ? "Assistant" : "Booking receptionist"}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="text-sm text-muted">
+          Clients see: &ldquo;Hi! This is {assistantName.trim() || "Mia"}, {ownerName.trim() || "your"}{ownerName.trim() ? "'s" : ""} {assistantRole}.&rdquo;
+        </p>
+        <SaveBar s={details} onSave={() => details.save(() => saveBusinessDetails({ name, ownerName, assistantName, assistantRole }))} />
       </section>
 
       <section aria-labelledby="services-h" className="card flex flex-col gap-4 p-6">
