@@ -80,7 +80,10 @@ export function facebookAuthUrl(state: string, redirectUri: string) {
   u.searchParams.set("client_id", env("META_APP_ID"));
   u.searchParams.set("redirect_uri", redirectUri);
   u.searchParams.set("state", state);
-  u.searchParams.set("scope", MESSENGER_SCOPES.join(","));
+  // Business-type apps use Facebook Login for Business: a saved configuration replaces the scope list.
+  const configId = env("META_LOGIN_CONFIG_ID");
+  if (configId) u.searchParams.set("config_id", configId);
+  else u.searchParams.set("scope", MESSENGER_SCOPES.join(","));
   u.searchParams.set("response_type", "code");
   return u.toString();
 }
