@@ -117,7 +117,7 @@ export function ChatDemo() {
             </div>
           </div>
 
-          <ol className={`flex h-[440px] flex-col justify-end gap-2.5 overflow-hidden px-3.5 pt-3 transition-[opacity,padding] duration-500 ${p.card !== "none" ? "pb-28" : "pb-4"} ${p.leaving ? "opacity-0" : "opacity-100"}`}>
+          <ol className={`flex h-[440px] flex-col justify-end gap-2.5 overflow-hidden px-3.5 pt-3 pb-4 transition-opacity duration-500 ${p.leaving ? "opacity-0" : "opacity-100"}`}>
             {visible.map((m, i) =>
               m.from === "client" ? (
                 <li key={`${s}-${i}`} className="landing-bubble flex max-w-[82%] flex-col gap-1.5 self-start">
@@ -152,27 +152,30 @@ export function ChatDemo() {
           </ol>
         </div>
 
-        {/* The owner's side: the request lands for approval */}
-        {p.card !== "none" && (
-          <div className={`landing-card absolute inset-x-6 -bottom-10 rounded-2xl bg-white p-3.5 shadow-[0_20px_44px_rgba(60,40,140,0.28)] transition-opacity duration-500 ${p.leaving ? "opacity-0" : ""}`}>
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-ink">{p.card === "approved" ? "Booked" : "New booking request"}</p>
-              <p className="text-[11px] text-muted">{shownScript.card.price}</p>
+      </div>
+
+      {/* The owner's side: the request lands below the chat for approval (space reserved so nothing jumps) */}
+      <div className="mx-3 mt-5 h-[124px]">
+          {p.card !== "none" && (
+            <div className={`landing-card rounded-2xl bg-white p-3.5 shadow-[0_20px_44px_rgba(60,40,140,0.28)] transition-opacity duration-500 ${p.leaving ? "opacity-0" : ""}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-ink">{p.card === "approved" ? "Booked" : "New booking request"}</p>
+                <p className="text-[11px] text-muted">{shownScript.card.price}</p>
+              </div>
+              <p className="mt-1 font-display text-sm font-semibold">{shownScript.card.service} · {shownScript.card.when}</p>
+              <p className="text-xs text-muted">{shownScript.card.client}</p>
+              <div className="mt-2.5 flex gap-2">
+                {p.card === "approved" ? (
+                  <span className="landing-bubble flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-ok-soft text-xs font-semibold text-ok">✓ Approved, client notified</span>
+                ) : (
+                  <>
+                    <span className="flex min-h-9 flex-1 items-center justify-center rounded-xl bg-brand text-xs font-semibold text-white landing-press">Approve</span>
+                    <span className="flex min-h-9 flex-1 items-center justify-center rounded-xl bg-soft text-xs font-semibold text-ink-2">Decline</span>
+                  </>
+                )}
+              </div>
             </div>
-            <p className="mt-1 font-display text-sm font-semibold">{shownScript.card.service} · {shownScript.card.when}</p>
-            <p className="text-xs text-muted">{shownScript.card.client}</p>
-            <div className="mt-2.5 flex gap-2">
-              {p.card === "approved" ? (
-                <span className="landing-bubble flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-ok-soft text-xs font-semibold text-ok">✓ Approved, client notified</span>
-              ) : (
-                <>
-                  <span className="flex min-h-9 flex-1 items-center justify-center rounded-xl bg-brand text-xs font-semibold text-white landing-press">Approve</span>
-                  <span className="flex min-h-9 flex-1 items-center justify-center rounded-xl bg-soft text-xs font-semibold text-ink-2">Decline</span>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );
