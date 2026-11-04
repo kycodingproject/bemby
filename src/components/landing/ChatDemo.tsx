@@ -117,7 +117,7 @@ export function ChatDemo() {
             </div>
           </div>
 
-          <ol className={`flex h-[440px] flex-col justify-end gap-2.5 px-3.5 pb-4 pt-3 transition-opacity duration-500 ${p.leaving ? "opacity-0" : "opacity-100"}`}>
+          <ol className={`flex h-[440px] flex-col justify-end gap-2.5 overflow-hidden px-3.5 pt-3 transition-[opacity,padding] duration-500 ${p.card !== "none" ? "pb-28" : "pb-4"} ${p.leaving ? "opacity-0" : "opacity-100"}`}>
             {visible.map((m, i) =>
               m.from === "client" ? (
                 <li key={`${s}-${i}`} className="landing-bubble flex max-w-[82%] flex-col gap-1.5 self-start">
