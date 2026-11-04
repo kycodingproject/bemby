@@ -7,6 +7,7 @@ import { hasActivePlan } from "./billing";
 import { DEMO_TEST_PHONE } from "./repo/seed";
 import { isDemo } from "./repo";
 import { chatUnlocked, QUIET_NOTE, triggerWordsFor } from "./triggers";
+import { shouldStaySilent } from "./closers";
 
 /** Webhook functions may run up to 300s on Vercel; keep the wait well inside that. */
 export const MAX_DELAY_SECONDS = 180;
@@ -83,6 +84,9 @@ export async function handleInbound(opts: {
       return { inbound, reply: null };
     }
   }
+
+  // "Thank you!!" after Bemby already said goodbye: let the chat end instead of replying forever.
+  if (shouldStaySilent(await repo.listMessages(conversation.id, 30))) return { inbound, reply: null };
 
   return { inbound, ...(await answerNow(repo, conversation.id, opts.loadMedia)) };
 }
