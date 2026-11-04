@@ -7,7 +7,7 @@ interface Script {
   biz: string;
   channel: string;
   lines: Line[];
-  card: { service: string; when: string; client: string; price: string };
+  card: { service: string; when: string; client: string; price: string; length: string; assistant: string; notes: string; intake: [string, string][]; photos: string[] };
   tint: [string, string];
 }
 
@@ -23,7 +23,12 @@ const SCRIPTS: Script[] = [
       { from: "client", photos: ["Hair now", "Inspo"], text: "2:30 please!" },
       { from: "bemby", text: "Love it! Your 2:30 request is with Kiara. You'll get a message once it's confirmed." },
     ],
-    card: { service: "Silk press", when: "Fri · 2:30 PM", client: "Jada M.", price: "$95" },
+    card: {
+      service: "Silk press", when: "Fri · 2:30 PM", client: "Jada M.", price: "$95", length: "2 hr", assistant: "Mia",
+      notes: "New client. Wants a silk press Friday afternoon and picked 2:30. Sent her current hair and inspo for a sleek, bouncy finish.",
+      intake: [["Current hair", "Photo sent"], ["Inspo", "Photo sent"]],
+      photos: ["Hair now", "Inspo"],
+    },
   },
   {
     biz: "Lashes by Dee",
@@ -36,7 +41,12 @@ const SCRIPTS: Script[] = [
       { from: "bemby", text: "Saturday I have 9:00 or 11:30 AM. Which works best?" },
       { from: "client", text: "9!!" },
     ],
-    card: { service: "Classic lash fill", when: "Sat · 9:00 AM", client: "Brianna T.", price: "$65" },
+    card: {
+      service: "Classic lash fill", when: "Sat · 9:00 AM", client: "Brianna T.", price: "$65", length: "1 hr", assistant: "Nova",
+      notes: "Asked about fill pricing first ($65). Wanted a Saturday morning and picked the 9:00.",
+      intake: [["Service", "Classic fill"], ["Prefers", "Saturday mornings"]],
+      photos: [],
+    },
   },
   {
     biz: "Ink & Iron Tattoo",
@@ -49,11 +59,16 @@ const SCRIPTS: Script[] = [
       { from: "bemby", text: "So pretty. Marco has Tue at 4:00 PM or Wed at 1:00 PM. Want one of those?" },
       { from: "client", text: "tuesday!" },
     ],
-    card: { service: "Fine line tattoo", when: "Tue · 4:00 PM", client: "Sofia R.", price: "$120+" },
+    card: {
+      service: "Fine line tattoo", when: "Tue · 4:00 PM", client: "Sofia R.", price: "from $120", length: "1 hr", assistant: "Rio",
+      notes: "Small fine line rose. Sent a reference pic. Quoted from $120 and she chose Tuesday at 4.",
+      intake: [["Placement", "Left wrist"], ["Size", "About 2 inches"]],
+      photos: ["Reference"],
+    },
   },
 ];
 
-type Phase = { shown: number; typing: boolean; card: "none" | "request" | "approved"; leaving: boolean };
+type Phase = { shown: number; typing: boolean; card: "none" | "request"; leaving: boolean };
 
 export function ChatDemo() {
   const [s, setS] = useState(0);
@@ -67,7 +82,7 @@ export function ChatDemo() {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       timers.push(setTimeout(() => {
         setStill(true);
-        setP({ shown: SCRIPTS[0].lines.length, typing: false, card: "approved", leaving: false });
+        setP({ shown: SCRIPTS[0].lines.length, typing: false, card: "request", leaving: false });
       }, 0));
       return () => timers.forEach(clearTimeout);
     }
@@ -82,8 +97,7 @@ export function ChatDemo() {
       }
     });
     at(1000, () => setP((x) => ({ ...x, card: "request" })));
-    at(1900, () => setP((x) => ({ ...x, card: "approved" })));
-    at(2600, () => setP((x) => ({ ...x, leaving: true })));
+    at(5200, () => setP((x) => ({ ...x, leaving: true }))); // time to read the request
     at(500, () => {
       setP({ shown: 0, typing: false, card: "none", leaving: false });
       setS((n) => (n + 1) % SCRIPTS.length);
@@ -154,28 +168,48 @@ export function ChatDemo() {
 
       </div>
 
-      {/* The owner's side: the request lands below the chat for approval (space reserved so nothing jumps) */}
-      <div className="mx-3 mt-5 h-[124px]">
-          {p.card !== "none" && (
-            <div className={`landing-card rounded-2xl bg-white p-3.5 shadow-[0_20px_44px_rgba(60,40,140,0.28)] transition-opacity duration-500 ${p.leaving ? "opacity-0" : ""}`}>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-brand-ink">{p.card === "approved" ? "Booked" : "New booking request"}</p>
-                <p className="text-[11px] text-muted">{shownScript.card.price}</p>
-              </div>
-              <p className="mt-1 font-display text-sm font-semibold">{shownScript.card.service} · {shownScript.card.when}</p>
-              <p className="text-xs text-muted">{shownScript.card.client}</p>
-              <div className="mt-2.5 flex gap-2">
-                {p.card === "approved" ? (
-                  <span className="landing-bubble flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-xl bg-ok-soft text-xs font-semibold text-ok">✓ Approved, client notified</span>
-                ) : (
-                  <>
-                    <span className="flex min-h-9 flex-1 items-center justify-center rounded-xl bg-brand text-xs font-semibold text-white landing-press">Approve</span>
-                    <span className="flex min-h-9 flex-1 items-center justify-center rounded-xl bg-soft text-xs font-semibold text-ink-2">Decline</span>
-                  </>
-                )}
-              </div>
+      {/* The owner's side: the request lands on the calendar, just like in the dashboard */}
+      <div className="mt-6 min-h-[392px]">
+        {p.card !== "none" && (
+          <article className={`landing-card flex flex-col gap-2.5 rounded-[18px] bg-[#fff8ef] p-4 shadow-[inset_0_0_0_1px_rgba(163,87,10,0.4),0_20px_44px_rgba(60,40,140,0.18)] transition-opacity duration-500 ${p.leaving ? "opacity-0" : ""}`}>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-warn-chip px-2.5 py-1 text-xs font-semibold text-warn">New booking · needs your OK</span>
+              <span className="text-xs text-muted">via {shownScript.channel}</span>
             </div>
-          )}
+            <p className="font-display text-base font-semibold">{shownScript.card.when} · {shownScript.card.client}</p>
+            <p className="-mt-1.5 text-[13px] text-ink-2">{shownScript.card.service} · {shownScript.card.length} · {shownScript.card.price}</p>
+            {shownScript.card.photos.length > 0 && (
+              <div className="flex gap-2">
+                {shownScript.card.photos.map((label, j) => (
+                  <span
+                    key={label}
+                    className="flex h-16 flex-1 items-end rounded-xl p-1.5 text-[10px] font-semibold text-white"
+                    style={{ background: `linear-gradient(${140 + j * 60}deg, ${shownScript.tint[0]}, ${shownScript.tint[1]})` }}
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div className="rounded-xl bg-card px-3 py-2.5 text-xs leading-relaxed text-ink-2 shadow-[inset_0_0_0_1px_rgba(26,24,48,0.06)]">
+              <span className="mb-0.5 block text-[11px] font-semibold text-brand-ink">{shownScript.card.assistant}&apos;s notes</span>
+              {shownScript.card.notes}
+              <dl className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5">
+                {shownScript.card.intake.map(([k, v]) => (
+                  <div key={k} className="contents">
+                    <dt className="text-muted">{k}</dt>
+                    <dd>{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="landing-press flex min-h-9 items-center justify-center rounded-xl bg-brand px-4 text-xs font-semibold text-white">Approve</span>
+              <span className="flex min-h-9 items-center justify-center rounded-xl bg-[#f1eff8] px-4 text-xs font-semibold text-ink shadow-[inset_0_0_0_1px_rgba(26,24,48,0.1)]">Decline</span>
+              <span className="ml-1 text-xs text-brand-ink underline">Open chat</span>
+            </div>
+          </article>
+        )}
       </div>
     </div>
   );

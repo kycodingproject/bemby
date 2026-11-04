@@ -60,8 +60,8 @@ export default function Welcome() {
       </header>
 
       {/* Hero */}
-      <section className="relative z-10 mx-auto grid max-w-6xl items-center gap-14 px-4 pb-24 pt-8 md:px-8 lg:grid-cols-[1.05fr_1fr] lg:pt-14">
-        <div className="flex flex-col items-start gap-6">
+      <section className="relative z-10 mx-auto grid max-w-6xl items-center gap-14 lg:items-start px-4 pb-24 pt-8 md:px-8 lg:grid-cols-[1.05fr_1fr] lg:pt-14">
+        <div className="flex flex-col items-start gap-6 lg:pt-24">
           <p className="landing-rise inline-flex items-center gap-2 rounded-full bg-white/80 px-3.5 py-1.5 text-[13px] font-semibold text-brand-ink shadow-[0_0_0_1px_rgba(106,75,245,0.18)] backdrop-blur">
             <span className="size-2 rounded-full bg-brand landing-ping" /> Your receptionist for Instagram, Messenger & text
           </p>
