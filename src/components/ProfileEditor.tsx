@@ -5,6 +5,7 @@ import { saveBusinessDetails, saveHours, saveServices } from "@/app/(app)/action
 import type { ServiceDraft } from "@/lib/templates";
 import { ASSISTANT_ROLES, type AssistantRole, type IntakeItem } from "@/lib/types";
 import { ServicesEditor } from "./ServicesEditor";
+import { ServicesImport } from "./ServicesImport";
 import { HoursEditor, type Hours } from "./HoursEditor";
 
 type Result = { ok?: boolean; error?: string } | undefined;
@@ -48,6 +49,7 @@ export function ProfileEditor(props: {
   assistantRole: AssistantRole;
   services: ServiceDraft[];
   suggestions: IntakeItem[];
+  businessType: string;
   hours: Hours;
   minNoticeHours: number;
   bufferMinutes: number;
@@ -111,6 +113,7 @@ export function ProfileEditor(props: {
           <h2 id="services-h" className="font-display text-xl font-semibold">Services & prices</h2>
           <p className="mt-1 text-sm text-muted">Bemby quotes these prices and times, and asks for the checked items before booking. Leave a price blank if it varies; Bemby will say you&apos;ll confirm it.</p>
         </div>
+        <ServicesImport businessType={props.businessType} services={services} onApply={(s) => { setServices(s); svc.touch(); }} />
         <ServicesEditor services={services} suggestions={props.suggestions} onChange={(s) => { setServices(s); svc.touch(); }} />
         <SaveBar
           s={svc}

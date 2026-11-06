@@ -6,6 +6,7 @@ import { createBusiness } from "@/app/onboarding/actions";
 import { BUSINESS_TYPES, servicesFor, type ServiceDraft } from "@/lib/templates";
 import { ASSISTANT_ROLES, type AssistantRole, type Autonomy } from "@/lib/types";
 import { ServicesEditor } from "./ServicesEditor";
+import { ServicesImport } from "./ServicesImport";
 import { HoursEditor, type Hours } from "./HoursEditor";
 import { emptyRegistration, NumberRequestFields } from "./NumberRequest";
 import { PLANS } from "@/lib/plans";
@@ -126,14 +127,24 @@ export function Onboarding({ email }: { email: string }) {
         )}
 
         {step === 1 && (
-          <ServicesEditor
-            services={services}
-            suggestions={t.asks}
-            onChange={(s) => {
-              setServices(s);
-              setTouchedServices(true);
-            }}
-          />
+          <div className="flex flex-col gap-4">
+            <ServicesImport
+              businessType={type}
+              services={services}
+              onApply={(s) => {
+                setServices(s);
+                setTouchedServices(true);
+              }}
+            />
+            <ServicesEditor
+              services={services}
+              suggestions={t.asks}
+              onChange={(s) => {
+                setServices(s);
+                setTouchedServices(true);
+              }}
+            />
+          </div>
         )}
 
         {step === 2 && (
