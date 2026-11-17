@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 const PUBLIC_PATHS = ["/login", "/signup", "/welcome"];
+// Signed-in owners skip these and go to their dashboard (the landing page stays viewable).
+const SIGNED_OUT_ONLY = ["/login", "/signup"];
 
 /**
  * 1. Optional site-wide password (SITE_PASSWORD) while Bemby is in private testing.
@@ -47,7 +49,7 @@ export default async function proxy(req: NextRequest) {
     to.search = "";
     return NextResponse.redirect(to);
   }
-  if (data.user && isPublic) {
+  if (data.user && SIGNED_OUT_ONLY.some((p) => path === p || path.startsWith(p + "/"))) {
     const to = req.nextUrl.clone();
     to.pathname = "/";
     to.search = "";
