@@ -76,7 +76,10 @@ export default function Welcome() {
           <p className="landing-rise max-w-xl text-lg leading-relaxed text-ink-2 [animation-delay:160ms]">
             Bemby answers every &ldquo;how much for a{" "}
             <RotatingWord words={["silk press", "lash fill", "fine line tattoo", "gel set", "fade", "facial", "knotless braids"]} className="font-semibold" wordClassName="text-grad pr-0.5" />
-            ?&rdquo; while you work. It asks for <G>inspo pics</G>, offers <G>your open times</G>, and sends you every booking to <G>approve</G>.
+            ?&rdquo;
+            {/* New line, so the rest of the text stays still while the service name changes */}
+            <br />
+            while you work. It asks for <G>inspo pics</G>, offers <G>your open times</G>, and sends you every booking to <G>approve</G>.
           </p>
           <div className="landing-rise flex flex-wrap items-center gap-3 [animation-delay:240ms]">
             <Link href="/signup" className="btn btn-primary landing-cta min-h-14 rounded-2xl px-7 text-base">
