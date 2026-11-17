@@ -133,12 +133,13 @@ export function QuestionSphere({ className = "" }: { className?: string }) {
       </div>
       <div ref={stage} className={`qsph-stage ${swapping ? "is-swapping" : ""}`} role="tabpanel" aria-label={`Questions ${tab === "All" ? "clients" : `${tab.toLowerCase()} clients`} ask`}>
         {list.map((q, i) => {
-          const im = i % 2 === 0;
+          const kind = i % 3; // received iMessage grey, Instagram grey, dark
+          const im = kind === 0;
           return (
             <div key={`${shown}-${i}`} ref={(n) => { nodes.current[i] = n; }} className="qsph-node">
               <div
                 tabIndex={0}
-                className={`qsph-bub ${im ? "qsph-im" : "qsph-ig"}`}
+                className={`qsph-bub ${["qsph-im", "qsph-ig", "qsph-dk"][kind]}`}
                 onMouseEnter={() => set(i)}
                 onMouseLeave={() => unset(i)}
                 onFocus={() => set(i)}
@@ -151,7 +152,7 @@ export function QuestionSphere({ className = "" }: { className?: string }) {
                 {q}
                 {im && (
                   <svg aria-hidden width="18" height="22" viewBox="0 0 18 22">
-                    <path d="M0 0 C1 9 6 17 18 22 C9 22 3 20 0 17 Z" fill="#1982FC" />
+                    <path d="M0 0 C1 9 6 17 18 22 C9 22 3 20 0 17 Z" fill="#E9E9EB" />
                   </svg>
                 )}
               </div>
