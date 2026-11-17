@@ -38,6 +38,8 @@ export async function GET() {
       status.migration_0005 = m5.error ? "NOT RUN (run 0005_trigger_words.sql)" : "done";
       const m6 = await sb.from("businesses").select("assistant_name").limit(1);
       status.migration_0006 = m6.error ? "NOT RUN (run 0006_receptionist.sql)" : "done";
+      const m11 = await sb.from("time_blocks").select("id").limit(1);
+      status.migration_0011 = m11.error ? "NOT RUN (run 0011_time_blocks.sql)" : "done";
       const m10 = await sb.from("businesses").select("address").limit(1);
       status.migration_0010 = m10.error ? "NOT RUN (run 0010_address.sql)" : "done";
       const m9 = await sb.from("training_questions").select("id").limit(1);

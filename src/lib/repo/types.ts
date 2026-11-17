@@ -1,4 +1,4 @@
-import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special , TrainingQuestion } from "../types";
+import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special , TrainingQuestion , TimeBlock } from "../types";
 
 /** Everything Bemby reads and writes. Two implementations: Supabase (real) and in-memory (demo). */
 export interface Repo {
@@ -41,6 +41,11 @@ export interface Repo {
   updateAppointment(id: string, patch: Partial<Appointment>): Promise<Appointment>;
 
   // goals
+  /** Blocks that overlap [from, to). */
+  listBlocks(businessId: string, fromIso: string, toIso: string): Promise<TimeBlock[]>;
+  addBlock(b: Pick<TimeBlock, "business_id" | "starts_at" | "ends_at" | "all_day" | "note">): Promise<TimeBlock>;
+  deleteBlock(id: string): Promise<void>;
+  getBlock(id: string): Promise<TimeBlock | null>;
   listTraining(businessId: string): Promise<TrainingQuestion[]>;
   addTraining(q: Pick<TrainingQuestion, "business_id" | "question" | "source" | "conversation_id" | "sort">): Promise<TrainingQuestion>;
   updateTraining(id: string, patch: Partial<Pick<TrainingQuestion, "answer" | "status" | "answered_at" | "source" | "conversation_id" | "question">>): Promise<TrainingQuestion>;

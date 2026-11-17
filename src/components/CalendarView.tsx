@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
-import { approveAppointment, declineAppointment } from "@/app/(app)/actions";
+import { approveAppointment, declineAppointment, removeTimeBlock, addTimeBlock } from "@/app/(app)/actions";
 import type { MediaRef } from "@/lib/types";
 import { PhotoTile } from "./PhotoTile";
 
@@ -34,6 +34,17 @@ export interface CalBusy {
   source: string;
 }
 
+/** Time the owner blocked off in Bemby. */
+export interface CalBlock {
+  id: string;
+  day: string;
+  sort: number;
+  allDay: boolean;
+  time: string;
+  note: string;
+  span: string; // "Nov 20 – Nov 24" for multi-day blocks
+}
+
 const DOWS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const short = (t: string) => t.replace(":00", "").replace(" ", "").toLowerCase();
 const human = (k: string) => k.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
@@ -46,6 +57,8 @@ export function CalendarView(props: {
   cells: { key: string; day: number; inMonth: boolean }[];
   items: CalAppt[];
   busy?: CalBusy[];
+  blocks?: CalBlock[];
+  blocksReady?: boolean;
   initialDay: string;
 }) {
   const [sel, setSel] = useState(props.initialDay);
@@ -69,6 +82,17 @@ export function CalendarView(props: {
     return m;
   }, [props.busy]);
   const dayBusy = busyByDay.get(sel) ?? [];
+  const blocksByDay = useMemo(() => {
+    const m = new Map<string, CalBlock[]>();
+    for (const b of props.blocks ?? []) {
+      if (!m.has(b.day)) m.set(b.day, []);
+      m.get(b.day)!.push(b);
+    }
+    for (const list of m.values()) list.sort((a, b) => a.sort - b.sort);
+    return m;
+  }, [props.blocks]);
+  const dayBlocks = blocksByDay.get(sel) ?? [];
+  const dayOff = dayBlocks.some((b) => b.allDay);
   const pending = props.items.filter((i) => i.status === "requested").sort((a, b) => a.day.localeCompare(b.day));
   const dayItems = byDay.get(sel) ?? [];
   const selDate = new Date(`${sel}T12:00:00Z`);
@@ -103,6 +127,8 @@ export function CalendarView(props: {
             const list = byDay.get(c.key) ?? [];
             const nPending = list.filter((x) => x.status === "requested").length;
             const isSel = c.key === sel;
+            const cellBlocks = blocksByDay.get(c.key) ?? [];
+            const off = cellBlocks.some((b) => b.allDay);
             return (
               <button
                 key={c.key}
@@ -112,9 +138,14 @@ export function CalendarView(props: {
                 aria-label={`${c.key}: ${list.length} appointments${nPending ? `, ${nPending} need your OK` : ""}`}
                 className={`flex min-h-14 min-w-0 flex-col items-center gap-1 rounded-[10px] px-0.5 py-1.5 text-left text-xs md:min-h-28 md:items-stretch md:rounded-[14px] md:p-2 ${
                   isSel ? "bg-brand-soft shadow-[inset_0_0_0_2px_var(--color-brand)]" : c.inMonth ? "bg-soft shadow-[inset_0_0_0_1px_rgba(26,24,48,0.05)] hover:bg-hover" : "bg-[#fafafd] text-[#77748f]"
-                }`}
+                } ${off ? "cal-off" : ""}`}
               >
                 <span className={`flex size-[26px] shrink-0 items-center justify-center rounded-full font-display text-[13px] font-semibold ${c.key === props.todayKey ? "bg-brand text-white" : ""}`}>{c.day}</span>
+                {cellBlocks.length > 0 && (
+                  <span className="hidden truncate rounded-md bg-[#e9e7f1] px-1.5 py-0.5 text-[11px] font-semibold leading-tight text-ink-2 md:block">
+                    {off ? "Off" : `Blocked${cellBlocks.length > 1 ? ` ×${cellBlocks.length}` : ""}`}
+                  </span>
+                )}
                 {list.slice(0, 2).map((x) => (
                   <span
                     key={x.id}
@@ -136,6 +167,7 @@ export function CalendarView(props: {
                     <span key={x.id} className="size-1.5 rounded-full" style={{ background: x.status === "requested" ? "var(--color-warn)" : x.bemby ? "var(--color-brand)" : "var(--color-faint)" }} />
                   ))}
                   {list.length === 0 && (busyByDay.get(c.key)?.length ?? 0) > 0 && <span className="size-1.5 rounded-full border border-[rgba(26,24,48,0.4)]" />}
+                  {cellBlocks.length > 0 && !off && <span className="size-1.5 rounded-[2px] bg-[#8b88a3]" />}
                 </span>
               </button>
             );
@@ -146,6 +178,7 @@ export function CalendarView(props: {
           <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-[3px] bg-faint" />Booked by you</span>
           <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-[3px] bg-warn" />Needs your OK</span>
           {(props.busy?.length ?? 0) > 0 && <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-[3px] border border-dashed border-[rgba(26,24,48,0.4)]" />Busy on your calendar</span>}
+          {(props.blocks?.length ?? 0) > 0 && <span className="flex items-center gap-1.5"><span className="cal-off size-2.5 rounded-[3px] bg-[#e9e7f1]" />Blocked off</span>}
         </div>
       </section>
 
@@ -155,7 +188,26 @@ export function CalendarView(props: {
           <h2 className="mt-1 font-display text-[22px] font-semibold">{dayTitle}</h2>
         </div>
 
-        {dayItems.length === 0 && dayBusy.length === 0 && <p className="rounded-2xl bg-soft p-4 text-sm leading-relaxed text-muted">Open day. Bemby will offer these times to clients who ask.</p>}
+        {dayItems.length === 0 && dayBusy.length === 0 && dayBlocks.length === 0 && <p className="rounded-2xl bg-soft p-4 text-sm leading-relaxed text-muted">Open day. Bemby will offer these times to clients who ask.</p>}
+
+        {dayBlocks.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-muted">{dayOff ? "You're off this day. Bemby won't book anything." : "Blocked off. Bemby won't book these times."}</p>
+            {dayBlocks.map((b) => (
+              <div key={`${b.id}-${b.day}`} className="cal-off flex items-center gap-3.5 rounded-2xl bg-[#f1eff8] p-3.5 shadow-[inset_0_0_0_1px_rgba(26,24,48,0.1)]">
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="font-display text-[15px] font-semibold">{b.time}</span>
+                  <span className="truncate text-[13px] text-muted">{[b.note || "Blocked", b.span].filter(Boolean).join(" · ")}</span>
+                </span>
+                <button type="button" className="btn btn-ghost bg-card" disabled={busy} onClick={() => start(() => removeTimeBlock(b.id))} aria-label={`Remove block ${b.time}${b.note ? `, ${b.note}` : ""}`}>
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <BlockTime key={sel} day={sel} ready={props.blocksReady !== false} dayOff={dayOff} />
 
         {dayBusy.length > 0 && (
           <div className="flex flex-col gap-2">
@@ -238,5 +290,104 @@ function Details({ a }: { a: CalAppt }) {
         </div>
       )}
     </>
+  );
+}
+
+const TIMES = Array.from({ length: 48 }, (_, i) => `${String(Math.floor(i / 2)).padStart(2, "0")}:${i % 2 ? "30" : "00"}`);
+const timeLabel = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+};
+
+/** "Block time" for the selected day: the whole day (or a run of days) or part of it. */
+function BlockTime({ day, ready, dayOff }: { day: string; ready: boolean; dayOff: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [allDay, setAllDay] = useState(true);
+  const [through, setThrough] = useState(day);
+  const [startT, setStartT] = useState("12:00");
+  const [endT, setEndT] = useState("13:00");
+  const [note, setNote] = useState("");
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [busy, start] = useTransition();
+
+  if (!open) {
+    return (
+      <div className="flex flex-col gap-2">
+        {!dayOff && <button type="button" className="btn btn-ghost self-start" onClick={() => { setOpen(true); setMsg(null); }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M5.6 5.6l12.8 12.8" /></svg>
+          Block time
+        </button>}
+        {msg && <p role="status" className={`text-sm ${msg.ok ? "text-ok" : "text-danger"}`}>{msg.text}</p>}
+      </div>
+    );
+  }
+  const sel = "input min-h-11 bg-card";
+  return (
+    <form
+      className="flex flex-col gap-3 rounded-2xl bg-soft p-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        setMsg(null);
+        start(async () => {
+          const r = await addTimeBlock({ date: day, through: allDay ? through : undefined, allDay, start: startT, end: endT, note });
+          if (r && "error" in r && r.error) setMsg({ ok: false, text: r.error });
+          else {
+            setMsg({ ok: true, text: (r && "message" in r && r.message) || "Blocked." });
+            setOpen(false);
+            setNote("");
+          }
+        });
+      }}
+    >
+      <p className="text-sm font-semibold">Block time</p>
+      {!ready && <p className="text-[13px] text-warn">Run supabase/migrations/0011_time_blocks.sql in Supabase to turn this on.</p>}
+      <div role="radiogroup" aria-label="What to block" className="flex gap-2">
+        {[
+          { v: true, t: "Whole day" },
+          { v: false, t: "Certain hours" },
+        ].map((o) => (
+          <button
+            key={o.t}
+            type="button"
+            role="radio"
+            aria-checked={allDay === o.v}
+            onClick={() => setAllDay(o.v)}
+            className={`min-h-10 flex-1 rounded-xl text-sm font-semibold ${allDay === o.v ? "bg-brand text-white" : "bg-card shadow-[inset_0_0_0_1px_rgba(26,24,48,0.12)] hover:bg-hover"}`}
+          >
+            {o.t}
+          </button>
+        ))}
+      </div>
+      {allDay ? (
+        <label className="flex flex-col gap-1.5 text-[13px] text-muted">
+          Through (for a vacation or several days off)
+          <input type="date" className={sel} value={through} min={day} onChange={(e) => setThrough(e.target.value || day)} />
+        </label>
+      ) : (
+        <div className="flex gap-2">
+          <label className="flex flex-1 flex-col gap-1.5 text-[13px] text-muted">
+            From
+            <select className={sel} value={startT} onChange={(e) => setStartT(e.target.value)}>
+              {TIMES.map((t) => <option key={t} value={t}>{timeLabel(t)}</option>)}
+            </select>
+          </label>
+          <label className="flex flex-1 flex-col gap-1.5 text-[13px] text-muted">
+            To
+            <select className={sel} value={endT} onChange={(e) => setEndT(e.target.value)}>
+              {TIMES.map((t) => <option key={t} value={t}>{timeLabel(t)}</option>)}
+            </select>
+          </label>
+        </div>
+      )}
+      <label className="flex flex-col gap-1.5 text-[13px] text-muted">
+        Note for you (optional, clients never see it)
+        <input className={sel} value={note} maxLength={80} onChange={(e) => setNote(e.target.value)} placeholder={allDay ? "e.g. Vacation" : "e.g. Lunch, school pickup"} />
+      </label>
+      {msg && !msg.ok && <p role="alert" className="text-sm text-danger">{msg.text}</p>}
+      <div className="flex gap-2">
+        <button className="btn btn-primary" disabled={busy}>{busy ? "Saving…" : "Block it"}</button>
+        <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => setOpen(false)}>Cancel</button>
+      </div>
+    </form>
   );
 }

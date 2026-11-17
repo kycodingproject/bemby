@@ -194,3 +194,6 @@ body {
   -webkit-background-clip: text; background-clip: text; color: transparent;
   -webkit-box-decoration-break: clone; box-decoration-break: clone;
 }
+
+/* Blocked-off time on the calendar: soft diagonal stripes */
+.cal-off { background-image: repeating-linear-gradient(135deg, rgb(26 24 48 / 0.06) 0 6px, transparent 6px 12px); }

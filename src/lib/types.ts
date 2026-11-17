@@ -183,3 +183,14 @@ export interface TrainingQuestion {
   created_at: string;
   answered_at: string | null;
 }
+
+/** Time the owner blocked off in Bemby (a day off, vacation, lunch). Bemby never books over it. */
+export interface TimeBlock {
+  id: string;
+  business_id: string;
+  starts_at: string;
+  ends_at: string;
+  all_day: boolean;
+  note: string | null;
+  created_at: string;
+}

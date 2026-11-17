@@ -1,7 +1,7 @@
 import { currentBusinessId, getRepo } from "@/lib/repo";
 import { photoUrl } from "@/lib/media";
 import { addDaysLocal, formatSlot, formatTime, localDateKey, zonedParts, zonedTimeToUtc } from "@/lib/time";
-import { CalendarView, type CalAppt, type CalBusy } from "@/components/CalendarView";
+import { CalendarView, type CalAppt, type CalBlock, type CalBusy } from "@/components/CalendarView";
 import { externalBusy } from "@/lib/calendar/external";
 import Link from "next/link";
 
@@ -74,6 +74,26 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
     }
   }
 
+  // Time the owner blocked in Bemby, one row per day it covers.
+  const ownBlocks = await repo.listBlocks(business.id, from.toISOString(), to.toISOString()).catch(() => null);
+  const dayFmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: tz });
+  const blocks: CalBlock[] = [];
+  for (const b of ownBlocks ?? []) {
+    const s = new Date(b.starts_at).getTime(), e = new Date(b.ends_at).getTime();
+    const multi = b.all_day && e - s > 86400_000 + 3600_000;
+    const span = multi ? `${dayFmt.format(s)} – ${dayFmt.format(e - 1)}` : "";
+    for (let t = s, n = 0; t < e && n < 130; n++) {
+      const day = localDateKey(new Date(t), tz);
+      const [y, m, d] = day.split("-").map(Number);
+      const nx = addDaysLocal(y, m, d, 1);
+      const dayEnd = zonedTimeToUtc(nx.year, nx.month, nx.day, "00:00", tz).getTime();
+      const end = Math.min(e, dayEnd);
+      const whole = b.all_day || (t <= zonedTimeToUtc(y, m, d, "00:00", tz).getTime() && end >= dayEnd);
+      blocks.push({ id: b.id, day, sort: t, allDay: whole, time: whole ? "All day" : `${formatTime(new Date(t), tz)} – ${formatTime(new Date(end), tz)}`, note: b.note ?? "", span });
+      t = dayEnd;
+    }
+  }
+
   const todayKey = localDateKey(now, tz);
   const firstPending = items.filter((i) => i.status === "requested").sort((a, b) => a.day.localeCompare(b.day))[0];
   const initialDay = sp.pending && firstPending ? firstPending.day : cells.some((c) => c.key === todayKey) ? todayKey : cells.find((c) => c.inMonth)!.key;
@@ -86,7 +106,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight">Calendar</h1>
-          <p className="mt-1.5 text-sm text-muted">Tap a day to see it. Gold appointments are waiting for your OK.</p>
+          <p className="mt-1.5 text-sm text-muted">Tap a day to see it or block off time. Gold appointments are waiting for your OK.</p>
         </div>
       </header>
       {ext.problems.length > 0 && (
@@ -98,6 +118,8 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
       <CalendarView
         key={`${year}-${month}`}
         busy={busy}
+        blocks={blocks}
+        blocksReady={ownBlocks !== null}
         monthLabel={monthLabel}
         prevHref={`/calendar?m=${prev}`}
         nextHref={`/calendar?m=${next}`}

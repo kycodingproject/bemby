@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special , TrainingQuestion } from "../types";
+import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special , TrainingQuestion , TimeBlock } from "../types";
 import type { Repo } from "./types";
 
 function must<T>(res: { data: T | null; error: { message: string } | null }): T {
@@ -120,6 +120,18 @@ export class SupabaseRepo implements Repo {
     return must(await this.sb.from("appointments").update(patch).eq("id", id).select().single()) as Appointment;
   }
 
+  async listBlocks(businessId: string, fromIso: string, toIso: string) {
+    return must(await this.sb.from("time_blocks").select("*").eq("business_id", businessId).lt("starts_at", toIso).gt("ends_at", fromIso).order("starts_at")) as TimeBlock[];
+  }
+  async addBlock(b: Pick<TimeBlock, "business_id" | "starts_at" | "ends_at" | "all_day" | "note">) {
+    return must(await this.sb.from("time_blocks").insert(b).select().single()) as TimeBlock;
+  }
+  async deleteBlock(id: string) {
+    must(await this.sb.from("time_blocks").delete().eq("id", id).select());
+  }
+  async getBlock(id: string) {
+    return must(await this.sb.from("time_blocks").select("*").eq("id", id).maybeSingle()) as TimeBlock | null;
+  }
   async listTraining(businessId: string) {
     return must(await this.sb.from("training_questions").select("*").eq("business_id", businessId).order("created_at")) as TrainingQuestion[];
   }

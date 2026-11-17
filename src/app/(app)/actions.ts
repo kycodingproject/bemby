@@ -13,7 +13,7 @@ import { loadStoredMedia } from "@/lib/media";
 import { BACK_NOTE } from "@/lib/triggers";
 import { addressForClient } from "@/lib/address";
 import { hasActivePlan } from "@/lib/billing";
-import { formatSlot } from "@/lib/time";
+import { formatSlot, addDaysLocal, zonedTimeToUtc } from "@/lib/time";
 import type { AskFirstKey, Autonomy, Business } from "@/lib/types";
 
 async function ownedBusiness() {
@@ -462,4 +462,57 @@ export async function addOwnTraining(question: string, answer: string) {
   }
   refresh();
   return { ok: true };
+}
+
+// ---------- Blocked time ----------
+
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+const YMD = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Block off a whole day (or several, like a vacation) or part of a day. Bemby won't offer that time. */
+export async function addTimeBlock(input: { date: string; through?: string; allDay: boolean; start?: string; end?: string; note?: string }) {
+  const { repo, business } = await ownedBusiness();
+  const tz = business.timezone;
+  if (!YMD.test(input.date)) return { error: "Pick a day." };
+  const [y, m, d] = input.date.split("-").map(Number);
+  let startsAt: Date;
+  let endsAt: Date;
+  if (input.allDay) {
+    const through = input.through && YMD.test(input.through) ? input.through : input.date;
+    if (through < input.date) return { error: "The last day can't be before the first day." };
+    const [ty, tm, td] = through.split("-").map(Number);
+    const after = addDaysLocal(ty, tm, td, 1);
+    startsAt = zonedTimeToUtc(y, m, d, "00:00", tz);
+    endsAt = zonedTimeToUtc(after.year, after.month, after.day, "00:00", tz);
+    if (endsAt.getTime() - startsAt.getTime() > 120 * 86400_000) return { error: "Block up to 120 days at a time." };
+  } else {
+    if (!input.start || !input.end || !HHMM.test(input.start) || !HHMM.test(input.end)) return { error: "Pick a start and end time." };
+    if (input.end <= input.start) return { error: "The end time has to be after the start time." };
+    startsAt = zonedTimeToUtc(y, m, d, input.start, tz);
+    endsAt = zonedTimeToUtc(y, m, d, input.end, tz);
+  }
+  try {
+    await repo.addBlock({ business_id: business.id, starts_at: startsAt.toISOString(), ends_at: endsAt.toISOString(), all_day: input.allDay, note: String(input.note ?? "").trim().slice(0, 80) || null });
+  } catch (e) {
+    return { error: /time_blocks|relation|schema cache/i.test((e as Error).message) ? "Run supabase/migrations/0011_time_blocks.sql in Supabase to turn on blocking." : (e as Error).message };
+  }
+  // Blocking doesn't cancel anything already booked: tell the owner so they can reach out.
+  const clash = (await repo.listAppointments(business.id, startsAt.toISOString(), endsAt.toISOString())).filter(
+    (a) => (a.status === "confirmed" || a.status === "requested") && new Date(a.starts_at) < endsAt && new Date(a.ends_at) > startsAt,
+  );
+  refresh();
+  return {
+    ok: true,
+    message: clash.length
+      ? `Blocked. Heads up: ${clash.length} appointment${clash.length === 1 ? " is" : "s are"} already in that time. ${clash.length === 1 ? "It's" : "They're"} still on, so reach out if you need to move ${clash.length === 1 ? "it" : "them"}.`
+      : "Blocked. Bemby won't offer this time to clients.",
+  };
+}
+
+export async function removeTimeBlock(id: string) {
+  const { repo, business } = await ownedBusiness();
+  const b = await repo.getBlock(id);
+  if (!b || b.business_id !== business.id) return;
+  await repo.deleteBlock(id);
+  refresh();
 }

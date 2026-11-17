@@ -1,4 +1,4 @@
-import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special, TrainingQuestion } from "../types";
+import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special, TimeBlock, TrainingQuestion } from "../types";
 import type { Repo } from "./types";
 import { seedDemo } from "./seed";
 
@@ -12,6 +12,7 @@ export interface MemoryDb {
   goals: Goal[];
   specials: Special[];
   training?: TrainingQuestion[];
+  blocks?: TimeBlock[];
 }
 
 const uid = () => crypto.randomUUID();
@@ -101,6 +102,16 @@ export class MemoryRepo implements Repo {
   }
   async updateAppointment(id: string, patch: Partial<Appointment>) { return patchRow(this.db.appointments, id, patch); }
 
+  async listBlocks(businessId: string, fromIso: string, toIso: string) {
+    return (this.db.blocks ??= []).filter((b) => b.business_id === businessId && b.starts_at < toIso && b.ends_at > fromIso).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+  }
+  async addBlock(b: Pick<TimeBlock, "business_id" | "starts_at" | "ends_at" | "all_day" | "note">) {
+    const row: TimeBlock = { ...b, id: uid(), created_at: now() };
+    (this.db.blocks ??= []).push(row);
+    return row;
+  }
+  async deleteBlock(id: string) { this.db.blocks = (this.db.blocks ?? []).filter((b) => b.id !== id); }
+  async getBlock(id: string) { return (this.db.blocks ?? []).find((b) => b.id === id) ?? null; }
   async listTraining(businessId: string) { return (this.db.training ??= []).filter((q) => q.business_id === businessId); }
   async addTraining(q: Pick<TrainingQuestion, "business_id" | "question" | "source" | "conversation_id" | "sort">) {
     const list = (this.db.training ??= []);
