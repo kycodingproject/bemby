@@ -9,7 +9,7 @@ export const metadata = { title: "Choose your plan · Bemby" };
 export default async function BillingPage({ searchParams }: { searchParams: Promise<{ canceled?: string }> }) {
   if (isDemo() || !billingEnabled()) redirect("/");
   const b = (await getRepo().getBusiness(await currentBusinessId()))!;
-  if (hasActivePlan(b)) redirect("/settings#plan");
+  if (hasActivePlan(b)) redirect("/settings?tab=plan");
   const { canceled } = await searchParams;
   const firstTime = !b.stripe_subscription_id && (b.subscription_status ?? "none") === "none";
   const wantsNumber = b.texting_status === "requested";

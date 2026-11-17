@@ -27,6 +27,6 @@ export async function checkOAuthState(kind: "instagram" | "tiktok", given: strin
 export function settingsRedirect(req: NextRequest, params: Record<string, string>) {
   const u = new URL("/settings", baseUrl(req));
   for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v.slice(0, 300));
-  u.hash = "channels";
+  u.searchParams.set("tab", "channels");
   return u;
 }

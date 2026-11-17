@@ -44,6 +44,8 @@ function SaveBar({ s, onSave, label = "Save changes" }: { s: ReturnType<typeof u
 }
 
 export function ProfileEditor(props: {
+  /** Which card to show (Settings has one tab per card). */
+  show: "business" | "services" | "hours";
   name: string;
   ownerName: string;
   assistantName: string;
@@ -71,12 +73,14 @@ export function ProfileEditor(props: {
   const [notice, setNotice] = useState(props.minNoticeHours);
   const [buffer, setBuffer] = useState(props.bufferMinutes);
   const [policies, setPolicies] = useState(props.policies);
+  const show = props.show;
   const details = useSaver();
   const svc = useSaver();
   const hrs = useSaver();
 
   return (
     <>
+      {show === "business" && (
       <section aria-labelledby="details-h" className="card flex flex-col gap-4 p-6">
         <h2 id="details-h" className="font-display text-xl font-semibold">Your business</h2>
         <div className="flex flex-wrap gap-3">
@@ -125,7 +129,9 @@ export function ProfileEditor(props: {
         />
         <SaveBar s={details} onSave={() => details.save(() => saveBusinessDetails({ name, ownerName, assistantName, assistantRole, address, addressNote, addressPublic }))} />
       </section>
+      )}
 
+      {show === "services" && (
       <section aria-labelledby="services-h" className="card flex flex-col gap-4 p-6">
         <div>
           <h2 id="services-h" className="font-display text-xl font-semibold">Services & prices</h2>
@@ -146,7 +152,9 @@ export function ProfileEditor(props: {
           }}
         />
       </section>
+      )}
 
+      {show === "hours" && (
       <section aria-labelledby="hours-h" className="card flex flex-col gap-4 p-6">
         <div>
           <h2 id="hours-h" className="font-display text-xl font-semibold">Hours & booking rules</h2>
@@ -185,6 +193,7 @@ export function ProfileEditor(props: {
           }
         />
       </section>
+      )}
     </>
   );
 }

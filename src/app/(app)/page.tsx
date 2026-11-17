@@ -58,7 +58,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             </div>
           </div>
           <div className="flex flex-wrap gap-2.5">
-            <Link href="/settings#channels" className="btn btn-primary">Connect Instagram</Link>
+            <Link href="/settings?tab=channels" className="btn btn-primary">Connect Instagram</Link>
             <Link href="/inbox" className="btn btn-ghost bg-card">Practice in Inbox</Link>
           </div>
         </section>

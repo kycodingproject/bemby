@@ -14,11 +14,13 @@ import Link from "next/link";
 import { billingEnabled, hasActivePlan } from "@/lib/billing";
 import { openBillingPortal } from "../billing/actions";
 import { DeleteAccount } from "@/components/DeleteAccount";
+import { SettingsTabs } from "@/components/SettingsTabs";
+import { SETTINGS_TABS, type SettingsTab } from "@/lib/settings-tabs";
 
 // Reading a price-list photo with the AI can take ~30 seconds.
 export const maxDuration = 60;
 
-export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string }> }) {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string; tab?: string }> }) {
   const repo = getRepo();
   const b = (await repo.getBusiness(await currentBusinessId()))!;
   const services = await repo.listServices(b.id);
@@ -27,6 +29,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const plan = planOf(b.plan);
   const sp = await searchParams;
   const notice = sp.connected ? { ok: true, text: `Connected ${sp.connected}. Bemby will answer new messages there.` } : sp.error ? { ok: false, text: sp.error } : null;
+  const tab: SettingsTab = SETTINGS_TABS.some((t) => t.id === sp.tab) ? (sp.tab as SettingsTab) : notice ? "channels" : "business";
   const email = isDemo() ? "" : (await currentUser())?.email ?? "";
   const h = await headers();
   const siteUrl = (process.env.PUBLIC_BASE_URL?.trim() || `https://${h.get("x-forwarded-host") ?? h.get("host") ?? ""}`).replace(/\/$/, "");
@@ -38,6 +41,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         <p className="mt-1.5 text-sm text-muted">Your services, hours, and how much Bemby does on its own.</p>
       </header>
 
+      <SettingsTabs active={tab} />
+
+      {tab === "channels" && (
       <ChannelsPanel
         demo={isDemo()}
         instagram={b.instagram_account_id ? b.instagram_username ?? "connected" : null}
@@ -49,11 +55,14 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         notice={notice}
         billing={billingEnabled()}
       />
+      )}
 
-      <SettingsForm autonomy={b.autonomy} askFirst={b.ask_first} paused={b.paused} replyDelay={b.reply_delay_seconds ?? 60} triggerWords={b.trigger_words ?? []} serviceNames={services.map((s) => s.name)} />
+      {tab === "receptionist" && <SettingsForm autonomy={b.autonomy} askFirst={b.ask_first} paused={b.paused} replyDelay={b.reply_delay_seconds ?? 60} triggerWords={b.trigger_words ?? []} serviceNames={services.map((s) => s.name)} />}
 
+      {(tab === "business" || tab === "services" || tab === "hours") && (
       <ProfileEditor
-        key={b.id}
+        key={`${b.id}-${tab}`}
+        show={tab}
         name={b.name}
         ownerName={b.owner_name}
         assistantName={b.assistant_name ?? ""}
@@ -69,26 +78,32 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         bufferMinutes={b.buffer_minutes}
         policies={b.policies}
       />
+      )}
 
+      {tab === "calendar" && (
+      <>
       <CalendarSync
         demo={isDemo()}
-        feeds={isDemo() ? [] : await feedStatuses(b)}
+        feeds={isDemo() || tab !== "calendar" ? [] : await feedStatuses(b)}
         allDayBlocks={b.calendar_all_day_blocks !== false}
         bookingsLink={b.calendar_token ? `${siteUrl}/api/calendar/${b.calendar_token}.ics` : null}
       />
 
-      <div className="grid gap-6 md:grid-cols-2">
         <section aria-label="More tools" className="card p-6">
           <h2 className="mb-1.5 font-display text-xl font-semibold">More tools</h2>
           <div className="flex flex-wrap items-center justify-between gap-3 py-3.5">
             <div>
               <p className="text-sm font-semibold">Vagaro</p>
-              <p className="mt-0.5 text-[13px] text-muted">Vagaro appointments can already block times through Google Calendar (see Calendar sync). A direct connection is coming.</p>
+              <p className="mt-0.5 text-[13px] text-muted">Vagaro appointments can already block times through Google Calendar (see Calendar sync above). A direct connection is coming.</p>
             </div>
             <span className="text-[13px] text-muted">After launch</span>
           </div>
         </section>
+      </>
+      )}
 
+      {tab === "plan" && (
+      <>
         <section id="plan" aria-label="Plan" className="card flex flex-col gap-3.5 p-6">
           <h2 className="font-display text-xl font-semibold">Plan</h2>
           <p className="flex items-baseline gap-2">
@@ -99,7 +114,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           {plan.id === "pro" ? (
             <p className="text-[13px] leading-relaxed text-muted">Includes {b.monthly_text_limit.toLocaleString()} texts a month. Instagram chats don&apos;t count. {EXTRA_TEXTS}</p>
           ) : (
-            <p className="text-[13px] leading-relaxed text-muted">Want clients to text you too? {PLANS.pro.name} adds a business phone number for {PLANS.pro.price}/month. Request it under &ldquo;Where clients reach you.&rdquo;</p>
+            <p className="text-[13px] leading-relaxed text-muted">Want clients to text you too? {PLANS.pro.name} adds a business phone number for {PLANS.pro.price}/month. Request it in the <Link href="/settings?tab=channels" className="underline">Messaging</Link> tab.</p>
           )}
           {billingEnabled() && !isDemo() ? (
             <div className="flex flex-col gap-2.5">
@@ -125,12 +140,13 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
             <p className="text-[13px] text-muted">Payments aren&apos;t connected yet, so Bemby is free for now. Add STRIPE_SECRET_KEY in Vercel and redeploy to turn on the plan picker.</p>
           )}
         </section>
-      </div>
 
       {!isDemo() && <DeleteAccount />}
       <p className="text-center text-xs text-muted">
         <Link href="/privacy" className="underline">Privacy Policy</Link> · <Link href="/terms" className="underline">Terms of Service</Link> · <Link href="/data-deletion" className="underline">Data deletion</Link>
       </p>
+      </>
+      )}
     </div>
   );
 }

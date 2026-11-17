@@ -92,7 +92,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
       {ext.problems.length > 0 && (
         <p role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-warn-soft px-4 py-3 text-sm text-warn shadow-[inset_0_0_0_1px_rgba(163,87,10,0.25)]">
           <span>Bemby can&apos;t read your {ext.problems.map((p) => p.label).join(" and ")} right now, so those events aren&apos;t blocking times. {ext.problems[0].message}</span>
-          <Link href="/settings#calendar-sync" className="btn btn-warn min-h-10">Fix in Settings</Link>
+          <Link href="/settings?tab=calendar" className="btn btn-warn min-h-10">Fix in Settings</Link>
         </p>
       )}
       <CalendarView

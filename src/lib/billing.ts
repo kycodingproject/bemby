@@ -106,7 +106,7 @@ export async function upgradeToPro(b: Business) {
 
 export async function portalUrl(b: Business, baseUrl: string) {
   if (!b.stripe_customer_id) throw new Error("No billing account yet");
-  const session = await stripe().billingPortal.sessions.create({ customer: b.stripe_customer_id, return_url: `${baseUrl}/settings#plan` });
+  const session = await stripe().billingPortal.sessions.create({ customer: b.stripe_customer_id, return_url: `${baseUrl}/settings?tab=plan` });
   return session.url;
 }
 
