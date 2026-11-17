@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 /** Cycles through words with a slide-up, e.g. "books every [silk press]". */
-export function RotatingWord({ words, className = "" }: { words: string[]; className?: string }) {
+export function RotatingWord({ words, className = "", wordClassName = "" }: { words: string[]; className?: string; wordClassName?: string }) {
   const [i, setI] = useState(0);
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -12,7 +12,7 @@ export function RotatingWord({ words, className = "" }: { words: string[]; class
   }, [words.length]);
   return (
     <span className={`relative inline-block overflow-hidden align-bottom ${className}`}>
-      <span key={i} className="landing-word inline-block">{words[i]}</span>
+      <span key={i} className={`landing-word inline-block ${wordClassName}`}>{words[i]}</span>
       <span className="sr-only">{words.join(", ")}</span>
     </span>
   );

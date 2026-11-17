@@ -181,3 +181,16 @@ body {
   .qsph-stage { height: 400px; }
   .qsph-tab { font-size: 13px; padding: 10px 13px; }
 }
+
+/* Gradient keywords, same as "booked." in the landing headline */
+.text-grad {
+  background-image: linear-gradient(90deg, #6a4bf5, #9a6bff 50%, #e05aa8);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+/* For dark/purple backgrounds */
+.text-grad-light {
+  background-image: linear-gradient(90deg, #ffffff, #ffd2ef 55%, #ffb3dd);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}

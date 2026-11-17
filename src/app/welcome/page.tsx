@@ -10,12 +10,15 @@ export const metadata = {
   description: "An AI receptionist that answers your Instagram and text clients, collects inspo pics, offers your open times and books appointments for you to approve.",
 };
 
+/** A gradient keyword, like "booked." in the headline. */
+const G = ({ children }: { children: React.ReactNode }) => <span className="text-grad">{children}</span>;
+
 const BUSINESSES = ["Hairstylists", "Lash artists", "Tattoo artists", "Nail techs", "Estheticians", "Barbers", "Brow artists", "Braiders"];
 
 const STEPS = [
-  { n: "01", title: "Connect your DMs", body: "Link your Instagram in a couple of taps, and add a business number for texting if you want one. Add your services, prices and hours." },
-  { n: "02", title: "Your receptionist takes the chat", body: "Give it a name. It answers questions, asks for hair or reference photos, and offers only times you're actually free." },
-  { n: "03", title: "You tap approve", body: "Every booking lands on your calendar as a request. Approve or decline in one tap and the client hears back right away." },
+  { n: "01", title: <>Connect <G>your DMs</G></>, body: "Link your Instagram in a couple of taps, and add a business number for texting if you want one. Add your services, prices and hours." },
+  { n: "02", title: <>Your <G>receptionist</G> takes the chat</>, body: "Give it a name. It answers questions, asks for hair or reference photos, and offers only times you're actually free." },
+  { n: "03", title: <>You tap <G>approve</G></>, body: "Every booking lands on your calendar as a request. Approve or decline in one tap and the client hears back right away." },
 ];
 
 const FEATURES = [
@@ -68,12 +71,12 @@ export default function Welcome() {
           </p>
           <h1 className="landing-rise font-display text-[44px] font-bold leading-[1.03] tracking-[-0.035em] sm:text-6xl lg:text-[68px] [animation-delay:80ms]">
             Your DMs,{" "}
-            <span className="bg-gradient-to-r from-[#6a4bf5] via-[#9a6bff] to-[#e05aa8] bg-clip-text text-transparent">booked.</span>
+            <span className="text-grad">booked.</span>
           </h1>
           <p className="landing-rise max-w-xl text-lg leading-relaxed text-ink-2 [animation-delay:160ms]">
             Bemby answers every &ldquo;how much for a{" "}
-            <RotatingWord words={["silk press", "lash fill", "fine line tattoo", "gel set", "fade", "facial", "knotless braids"]} className="font-semibold text-brand-ink" />
-            ?&rdquo; while you work. It asks for inspo pics, offers your open times, and sends you every booking to approve.
+            <RotatingWord words={["silk press", "lash fill", "fine line tattoo", "gel set", "fade", "facial", "knotless braids"]} className="font-semibold" wordClassName="text-grad pr-0.5" />
+            ?&rdquo; while you work. It asks for <G>inspo pics</G>, offers <G>your open times</G>, and sends you every booking to <G>approve</G>.
           </p>
           <div className="landing-rise flex flex-wrap items-center gap-3 [animation-delay:240ms]">
             <Link href="/signup" className="btn btn-primary landing-cta min-h-14 rounded-2xl px-7 text-base">
@@ -92,7 +95,7 @@ export default function Welcome() {
           </ul>
         </div>
         <div className="landing-rise min-w-0 [animation-delay:200ms]">
-          <p className="mb-3 text-center text-sm font-semibold text-ink-2">The questions filling your DMs. Pick your craft:</p>
+          <p className="mb-3 text-center text-sm font-semibold text-ink-2">The questions filling <G>your DMs</G>. Pick your craft:</p>
           <QuestionSphere />
         </div>
       </section>
@@ -101,7 +104,7 @@ export default function Welcome() {
       <section aria-labelledby="demo-h" className="relative z-10 mx-auto max-w-6xl px-4 pb-24 md:px-8">
         <Reveal className="mb-10 text-center">
           <p className="label">Watch it work</p>
-          <h2 id="demo-h" className="mt-3 font-display text-4xl font-bold tracking-tight">AI chats, and booking requests await your approval.</h2>
+          <h2 id="demo-h" className="mt-3 font-display text-4xl font-bold tracking-tight">AI chats, and booking requests await <G>your approval</G>.</h2>
         </Reveal>
         <ChatDemo />
       </section>
@@ -121,7 +124,7 @@ export default function Welcome() {
       <section className="relative z-10 mx-auto max-w-6xl px-4 py-24 md:px-8">
         <Reveal>
           <p className="label">How it works</p>
-          <h2 className="mt-3 max-w-2xl font-display text-4xl font-bold tracking-tight">From &ldquo;hi!&rdquo; to booked, without you picking up your phone.</h2>
+          <h2 className="mt-3 max-w-2xl font-display text-4xl font-bold tracking-tight">From &ldquo;hi!&rdquo; to <G>booked</G>, without you picking up your phone.</h2>
         </Reveal>
         <div className="mt-12 grid gap-5 md:grid-cols-3">
           {STEPS.map((s, i) => (
@@ -140,7 +143,7 @@ export default function Welcome() {
       <section className="relative z-10 mx-auto max-w-6xl px-4 pb-24 md:px-8">
         <Reveal>
           <p className="label">What you get</p>
-          <h2 className="mt-3 max-w-2xl font-display text-4xl font-bold tracking-tight">A front desk that never sleeps, and never double-books.</h2>
+          <h2 className="mt-3 max-w-2xl font-display text-4xl font-bold tracking-tight">A front desk that <G>never sleeps</G>, and <G>never double-books</G>.</h2>
         </Reveal>
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f, i) => (
@@ -159,7 +162,7 @@ export default function Welcome() {
       <section id="pricing" className="relative z-10 mx-auto max-w-6xl scroll-mt-8 px-4 pb-24 md:px-8">
         <Reveal className="text-center">
           <p className="label">Pricing</p>
-          <h2 className="mt-3 font-display text-4xl font-bold tracking-tight">Less than one missed booking a month.</h2>
+          <h2 className="mt-3 font-display text-4xl font-bold tracking-tight">Less than <G>one missed booking</G> a month.</h2>
         </Reveal>
         <div className="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-3">
           {[
@@ -196,7 +199,7 @@ export default function Welcome() {
           <div className="landing-final relative overflow-hidden rounded-[32px] px-6 py-16 text-center text-white md:px-16">
             <span aria-hidden className="orb landing-float-slow absolute -right-10 -top-10 size-44 opacity-70" />
             <span aria-hidden className="orb landing-float absolute -bottom-12 -left-8 size-32 opacity-50" />
-            <h2 className="relative font-display text-4xl font-bold tracking-tight md:text-5xl">Stop living in your DMs.</h2>
+            <h2 className="relative font-display text-4xl font-bold tracking-tight md:text-5xl">Stop living in <span className="text-grad-light">your DMs</span>.</h2>
             <p className="relative mx-auto mt-4 max-w-lg text-lg text-white/85">Let your receptionist answer, collect the details and fill your calendar. You just show up and do your thing.</p>
             <Link href="/signup" className="btn landing-cta relative mt-8 min-h-14 rounded-2xl bg-white px-8 text-base text-brand-ink hover:bg-white/90">
               Get started for {PLANS.trial.price}
