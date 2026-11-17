@@ -122,7 +122,7 @@ export function ChatDemo() {
   const shownScript = still ? SCRIPTS[0] : script;
 
   return (
-    <div className="grid items-center gap-x-16 gap-y-10 lg:grid-cols-2" aria-label="Example: a client chat on the left, and the booking request the owner gets on the right" role="img">
+    <div className="grid items-start gap-x-16 gap-y-10 lg:grid-cols-2" aria-label="Example: a client chat on the left, and the booking request the owner gets on the right" role="img">
      <div className="flex flex-col items-center gap-5">
       <p className="label">What your client sees</p>
      <div className="relative w-full max-w-[380px]">
