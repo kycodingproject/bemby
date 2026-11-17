@@ -1,7 +1,9 @@
 import { currentBusinessId, getRepo } from "@/lib/repo";
 import { photoUrl } from "@/lib/media";
 import { addDaysLocal, formatSlot, formatTime, localDateKey, zonedParts, zonedTimeToUtc } from "@/lib/time";
-import { CalendarView, type CalAppt } from "@/components/CalendarView";
+import { CalendarView, type CalAppt, type CalBusy } from "@/components/CalendarView";
+import { externalBusy } from "@/lib/calendar/external";
+import Link from "next/link";
 
 const CHANNEL = { sms: "text", instagram: "Instagram", tiktok: "TikTok" } as const;
 
@@ -56,6 +58,22 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
     }),
   );
 
+  // Events from the owner's linked Google/Apple calendars, one row per day they touch.
+  const ext = await externalBusy(business, from, to);
+  const busy: CalBusy[] = [];
+  for (const b of ext.blocks) {
+    for (let t = b.start, n = 0; t < b.end && n < 45; n++) {
+      const day = localDateKey(new Date(t), tz);
+      const [y, m, d] = day.split("-").map(Number);
+      const next = addDaysLocal(y, m, d, 1);
+      const dayEnd = zonedTimeToUtc(next.year, next.month, next.day, "00:00", tz).getTime();
+      const end = Math.min(b.end, dayEnd);
+      const whole = t <= zonedTimeToUtc(y, m, d, "00:00", tz).getTime() && end >= dayEnd;
+      busy.push({ day, sort: t, time: b.allDay || whole ? "All day" : `${formatTime(new Date(t), tz)} – ${formatTime(new Date(end), tz)}`, title: b.title, source: b.source });
+      t = dayEnd;
+    }
+  }
+
   const todayKey = localDateKey(now, tz);
   const firstPending = items.filter((i) => i.status === "requested").sort((a, b) => a.day.localeCompare(b.day))[0];
   const initialDay = sp.pending && firstPending ? firstPending.day : cells.some((c) => c.key === todayKey) ? todayKey : cells.find((c) => c.inMonth)!.key;
@@ -71,8 +89,15 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
           <p className="mt-1.5 text-sm text-muted">Tap a day to see it. Gold appointments are waiting for your OK.</p>
         </div>
       </header>
+      {ext.problems.length > 0 && (
+        <p role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-warn-soft px-4 py-3 text-sm text-warn shadow-[inset_0_0_0_1px_rgba(163,87,10,0.25)]">
+          <span>Bemby can&apos;t read your {ext.problems.map((p) => p.label).join(" and ")} right now, so those events aren&apos;t blocking times. {ext.problems[0].message}</span>
+          <Link href="/settings#calendar-sync" className="btn btn-warn min-h-10">Fix in Settings</Link>
+        </p>
+      )}
       <CalendarView
         key={`${year}-${month}`}
+        busy={busy}
         monthLabel={monthLabel}
         prevHref={`/calendar?m=${prev}`}
         nextHref={`/calendar?m=${next}`}

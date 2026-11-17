@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import type { Appointment, MediaRef, Message } from "../types";
 import type { Repo } from "../repo/types";
 import { findOpenSlots, isSlotOpen } from "../scheduling";
+import { externalBusy } from "../calendar/external";
 import { formatSlot, localDateKey, zonedParts, zonedTimeToUtc } from "../time";
 import { buildSystemPrompt } from "./prompt";
 
@@ -159,7 +160,8 @@ export async function runBemby(opts: {
         }
         const days = Math.min(30, Math.max(1, Number(input.days) || 14));
         const appts = await repo.listAppointments(business!.id, from.toISOString(), new Date(from.getTime() + (days + 1) * 86400_000).toISOString());
-        let slots = findOpenSlots({ business: business!, service, appointments: appts, now, from, days, limit: 40 });
+        const { blocks: busy } = await externalBusy(business!, from, new Date(from.getTime() + (days + 1) * 86400_000));
+        let slots = findOpenSlots({ business: business!, service, appointments: appts, busy, now, from, days, limit: 40 });
         const tod = input.time_of_day;
         if (tod && tod !== "any") {
           slots = slots.filter((s) => {
@@ -182,7 +184,8 @@ export async function runBemby(opts: {
         const start = new Date(String(input.start_iso));
         if (isNaN(start.getTime())) return "Invalid start_iso.";
         const appts = await repo.listAppointments(business!.id, new Date(start.getTime() - 86400_000).toISOString(), new Date(start.getTime() + 86400_000).toISOString());
-        const check = isSlotOpen({ business: business!, service, appointments: appts, start, now });
+        const { blocks: busy } = await externalBusy(business!, new Date(start.getTime() - 86400_000), new Date(start.getTime() + 86400_000));
+        const check = isSlotOpen({ business: business!, service, appointments: appts, busy, start, now });
         if (!check.ok) return `That time is not available (${check.reason}). Check availability again and offer other options.`;
         const labels = Array.isArray(input.photo_labels) ? (input.photo_labels as string[]) : [];
         const photos = recentClientMedia.slice(-Math.max(labels.length, 0) || undefined).map((p, i) => ({ ...p, label: labels[i] ?? p.label ?? "Photo" }));
@@ -204,7 +207,8 @@ export async function runBemby(opts: {
         if (!service) return "Could not find the service for that appointment. Hand off to the owner.";
         const start = new Date(String(input.new_start_iso));
         const appts = await repo.listAppointments(business!.id, new Date(start.getTime() - 86400_000).toISOString(), new Date(start.getTime() + 86400_000).toISOString());
-        const check = isSlotOpen({ business: business!, service, appointments: appts, start, now, ignoreAppointmentId: orig.id });
+        const { blocks: busy } = await externalBusy(business!, new Date(start.getTime() - 86400_000), new Date(start.getTime() + 86400_000));
+        const check = isSlotOpen({ business: business!, service, appointments: appts, busy, start, now, ignoreAppointmentId: orig.id });
         if (!check.ok) return `That time is not available (${check.reason}).`;
         appointment = await repo.createAppointment({
           business_id: business!.id, client_id: client.id, service_id: service.id, conversation_id: conversation!.id,

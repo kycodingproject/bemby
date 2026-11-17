@@ -20,6 +20,9 @@ export class SupabaseRepo implements Repo {
   async getBusinessByPhone(phone: string) {
     return must(await this.sb.from("businesses").select("*").eq("phone_number", phone).maybeSingle()) as Business | null;
   }
+  async getBusinessByCalendarToken(token: string) {
+    return must(await this.sb.from("businesses").select("*").eq("calendar_token", token).maybeSingle()) as Business | null;
+  }
   async getBusinessByChannelAccount(channel: "instagram" | "tiktok", accountId: string) {
     const col = channel === "instagram" ? "instagram_account_id" : "tiktok_account_id";
     return must(await this.sb.from("businesses").select("*").eq(col, accountId).maybeSingle()) as Business | null;

@@ -5,6 +5,7 @@ export interface Repo {
   // businesses
   getBusiness(id: string): Promise<Business | null>;
   getBusinessByPhone(phone: string): Promise<Business | null>;
+  getBusinessByCalendarToken(token: string): Promise<Business | null>;
   getBusinessByChannelAccount(channel: "instagram" | "tiktok", accountId: string): Promise<Business | null>;
   updateBusiness(id: string, patch: Partial<Business>): Promise<Business>;
 

@@ -351,3 +351,53 @@ export async function deleteAccount(confirm: string) {
   }
   redirect("/signup?deleted=1");
 }
+
+// ---------- Calendar sync ----------
+
+/** Link one of the owner's own calendars; everything on it counts as busy. */
+export async function addCalendarFeed(input: string) {
+  const { repo, business } = await ownedBusiness();
+  if (isDemo()) return { error: "Sign in to your own account to link a calendar." };
+  const { normalizeFeedUrl, testFeed, feedsOf } = await import("@/lib/calendar/external");
+  const n = normalizeFeedUrl(String(input).slice(0, 2000));
+  if ("error" in n) return { error: n.error };
+  const feeds = feedsOf(business);
+  if (feeds.some((f) => f.url === n.url)) return { error: "That calendar is already linked." };
+  if (feeds.length >= 5) return { error: "You can link up to 5 calendars. Remove one first." };
+  const test = await testFeed(n.url, business.timezone);
+  if (!test.ok) return { error: test.message };
+  try {
+    await repo.updateBusiness(business.id, { calendar_feeds: [...feeds, { id: crypto.randomUUID(), label: n.label, url: n.url }] });
+  } catch (e) {
+    return { error: `Couldn't save the calendar: ${(e as Error).message}. (Run supabase/migrations/0008_calendar_sync.sql.)` };
+  }
+  refresh();
+  return { ok: true, message: `Linked ${n.label}. Found ${test.upcoming} event${test.upcoming === 1 ? "" : "s"} in the next 30 days.` };
+}
+
+export async function removeCalendarFeed(id: string) {
+  const { repo, business } = await ownedBusiness();
+  const { feedsOf } = await import("@/lib/calendar/external");
+  await repo.updateBusiness(business.id, { calendar_feeds: feedsOf(business).filter((f) => f.id !== id) });
+  refresh();
+}
+
+export async function setAllDayBlocks(on: boolean) {
+  const { repo, business } = await ownedBusiness();
+  await repo.updateBusiness(business.id, { calendar_all_day_blocks: Boolean(on) });
+  refresh();
+}
+
+/** Create (or replace) the private link that shows Bemby bookings in Google/Apple Calendar. */
+export async function newCalendarLink() {
+  const { repo, business } = await ownedBusiness();
+  if (isDemo()) return { error: "Sign in to your own account to get a calendar link." };
+  const { randomBytes } = await import("node:crypto");
+  try {
+    await repo.updateBusiness(business.id, { calendar_token: randomBytes(24).toString("hex") });
+  } catch (e) {
+    return { error: `Couldn't create the link: ${(e as Error).message}. (Run supabase/migrations/0008_calendar_sync.sql.)` };
+  }
+  refresh();
+  return { ok: true };
+}

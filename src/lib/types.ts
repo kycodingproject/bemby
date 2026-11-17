@@ -31,6 +31,12 @@ export interface Business {
   plan: string;
   monthly_text_limit: number;
   instagram_username?: string | null;
+  /** Calendar links the owner pasted; events on them count as busy. Missing until migration 0008 runs. */
+  calendar_feeds?: { id: string; label: string; url: string }[];
+  /** All-day events on linked calendars block the whole day (default true). */
+  calendar_all_day_blocks?: boolean;
+  /** Secret used in the private link that shows Bemby bookings in Google/Apple Calendar. */
+  calendar_token?: string | null;
   /** TikTok Business account id (open_id). Missing until migration 0007 runs. */
   tiktok_account_id?: string | null;
   tiktok_username?: string | null;

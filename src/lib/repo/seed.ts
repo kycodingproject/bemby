@@ -24,6 +24,9 @@ export function seedDemo(now: Date): MemoryDb {
     paused: false,
     reply_delay_seconds: 60,
     trigger_words: [],
+    calendar_feeds: [],
+    calendar_all_day_blocks: true,
+    calendar_token: null,
     assistant_name: "Mia",
     assistant_role: "assistant",
     hours: Object.fromEntries(

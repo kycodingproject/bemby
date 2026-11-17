@@ -1,6 +1,9 @@
 import { currentBusinessId, getRepo, isDemo } from "@/lib/repo";
 import { currentUser } from "@/lib/auth";
 import { tiktokConfigured } from "@/lib/channels/tiktok";
+import { headers } from "next/headers";
+import { CalendarSync } from "@/components/CalendarSync";
+import { feedStatuses } from "@/lib/calendar/external";
 import { ChannelsPanel } from "@/components/ChannelsPanel";
 import { SettingsForm } from "@/components/SettingsForm";
 import { ProfileEditor } from "@/components/ProfileEditor";
@@ -22,6 +25,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams;
   const notice = sp.connected ? { ok: true, text: `Connected ${sp.connected}. Bemby will answer new messages there.` } : sp.error ? { ok: false, text: sp.error } : null;
   const email = isDemo() ? "" : (await currentUser())?.email ?? "";
+  const h = await headers();
+  const siteUrl = (process.env.PUBLIC_BASE_URL?.trim() || `https://${h.get("x-forwarded-host") ?? h.get("host") ?? ""}`).replace(/\/$/, "");
 
   return (
     <div className="flex flex-col gap-6">
@@ -59,22 +64,23 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         policies={b.policies}
       />
 
+      <CalendarSync
+        demo={isDemo()}
+        feeds={isDemo() ? [] : await feedStatuses(b)}
+        allDayBlocks={b.calendar_all_day_blocks !== false}
+        bookingsLink={b.calendar_token ? `${siteUrl}/api/calendar/${b.calendar_token}.ics` : null}
+      />
+
       <div className="grid gap-6 md:grid-cols-2">
-        <section aria-label="Calendars and tools" className="card p-6">
-          <h2 className="mb-1.5 font-display text-xl font-semibold">Calendars & tools</h2>
-          {[
-            { name: "Google Calendar", detail: "Two-way sync", status: "Coming soon" },
-            { name: "Apple Calendar", detail: "Two-way sync", status: "Coming soon" },
-            { name: "Vagaro", detail: "Sync appointments, clients and open times", status: "After launch" },
-          ].map((c) => (
-            <div key={c.name} className="flex flex-wrap items-center justify-between gap-3 border-b border-line py-3.5 last:border-0">
-              <div>
-                <p className="text-sm font-semibold">{c.name}</p>
-                <p className="mt-0.5 text-[13px] text-muted">{c.detail}</p>
-              </div>
-              <span className="text-[13px] text-muted">{c.status}</span>
+        <section aria-label="More tools" className="card p-6">
+          <h2 className="mb-1.5 font-display text-xl font-semibold">More tools</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3 py-3.5">
+            <div>
+              <p className="text-sm font-semibold">Vagaro</p>
+              <p className="mt-0.5 text-[13px] text-muted">Sync appointments, clients and open times</p>
             </div>
-          ))}
+            <span className="text-[13px] text-muted">After launch</span>
+          </div>
         </section>
 
         <section id="plan" aria-label="Plan" className="card flex flex-col gap-3.5 p-6">

@@ -11,12 +11,14 @@ const STEP_MINUTES = 30;
 /**
  * Open start times for a service between `from` and `from + days`.
  * Respects business hours, minimum notice, buffer between appointments,
- * and existing requested/confirmed appointments.
+ * existing requested/confirmed appointments, and the owner's linked calendars.
  */
 export function findOpenSlots(opts: {
   business: Business;
   service: Service;
   appointments: Appointment[];
+  /** Busy times from the owner's own calendars (ms). */
+  busy?: { start: number; end: number }[];
   now: Date;
   from?: Date;
   days?: number;
@@ -32,7 +34,8 @@ export function findOpenSlots(opts: {
     .map((a) => ({
       start: new Date(a.starts_at).getTime() - business.buffer_minutes * 60_000,
       end: new Date(a.ends_at).getTime() + business.buffer_minutes * 60_000,
-    }));
+    }))
+    .concat(opts.busy ?? []);
   const durMs = service.duration_minutes * 60_000;
   const start = zonedParts(opts.from ?? now, tz);
   const out: Slot[] = [];
@@ -83,6 +86,7 @@ export function isSlotOpen(opts: {
   business: Business;
   service: Service;
   appointments: Appointment[];
+  busy?: { start: number; end: number }[];
   start: Date;
   now: Date;
   ignoreAppointmentId?: string;
@@ -108,5 +112,6 @@ export function isSlotOpen(opts: {
       end.getTime() > new Date(a.starts_at).getTime() - buf,
   );
   if (clash) return { ok: false, reason: "already booked" };
+  if ((opts.busy ?? []).some((b) => start.getTime() < b.end && end.getTime() > b.start)) return { ok: false, reason: "the owner is busy then" };
   return { ok: true, end };
 }

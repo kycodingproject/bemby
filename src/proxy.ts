@@ -89,6 +89,6 @@ function supabaseUrlFromEnv() {
 }
 
 export const config = {
-  // Public: webhooks and Meta callbacks (they verify signatures), legal pages (Meta, carriers and clients must reach them), static files.
-  matcher: ["/((?!api/webhooks|api/meta|privacy|terms|data-deletion|_next/static|_next/image|favicon.ico|bemby-logo).*)"],
+  // Public: webhooks and Meta callbacks (they verify signatures), private calendar links (the long token in the address is the key), legal pages (Meta, carriers and clients must reach them), static files.
+  matcher: ["/((?!api/webhooks|api/meta|api/calendar|privacy|terms|data-deletion|_next/static|_next/image|favicon.ico|bemby-logo).*)"],
 };

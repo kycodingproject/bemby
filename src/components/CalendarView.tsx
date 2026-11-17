@@ -25,6 +25,15 @@ export interface CalAppt {
   photos: (MediaRef & { url?: string | null })[];
 }
 
+/** Something on the owner's own Google/Apple calendar (Bemby won't book over it). */
+export interface CalBusy {
+  day: string;
+  sort: number;
+  time: string;
+  title: string;
+  source: string;
+}
+
 const DOWS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const short = (t: string) => t.replace(":00", "").replace(" ", "").toLowerCase();
 const human = (k: string) => k.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase());
@@ -36,6 +45,7 @@ export function CalendarView(props: {
   todayKey: string;
   cells: { key: string; day: number; inMonth: boolean }[];
   items: CalAppt[];
+  busy?: CalBusy[];
   initialDay: string;
 }) {
   const [sel, setSel] = useState(props.initialDay);
@@ -49,6 +59,16 @@ export function CalendarView(props: {
     }
     return m;
   }, [props.items]);
+  const busyByDay = useMemo(() => {
+    const m = new Map<string, CalBusy[]>();
+    for (const b of props.busy ?? []) {
+      if (!m.has(b.day)) m.set(b.day, []);
+      m.get(b.day)!.push(b);
+    }
+    for (const list of m.values()) list.sort((a, b) => a.sort - b.sort);
+    return m;
+  }, [props.busy]);
+  const dayBusy = busyByDay.get(sel) ?? [];
   const pending = props.items.filter((i) => i.status === "requested").sort((a, b) => a.day.localeCompare(b.day));
   const dayItems = byDay.get(sel) ?? [];
   const selDate = new Date(`${sel}T12:00:00Z`);
@@ -106,10 +126,16 @@ export function CalendarView(props: {
                   </span>
                 ))}
                 {list.length > 2 && <span className="hidden pl-1 text-[11px] text-muted md:block">+{list.length - 2} more</span>}
+                {list.length < 2 && (busyByDay.get(c.key)?.length ?? 0) > 0 && (
+                  <span className="hidden truncate rounded-md border border-dashed border-[rgba(26,24,48,0.25)] px-1.5 py-0.5 text-[11px] leading-tight text-muted md:block">
+                    Busy{(busyByDay.get(c.key)?.length ?? 0) > 1 ? ` ×${busyByDay.get(c.key)!.length}` : ""}
+                  </span>
+                )}
                 <span className="flex flex-wrap justify-center gap-[3px] md:hidden">
                   {list.slice(0, 4).map((x) => (
                     <span key={x.id} className="size-1.5 rounded-full" style={{ background: x.status === "requested" ? "var(--color-warn)" : x.bemby ? "var(--color-brand)" : "var(--color-faint)" }} />
                   ))}
+                  {list.length === 0 && (busyByDay.get(c.key)?.length ?? 0) > 0 && <span className="size-1.5 rounded-full border border-[rgba(26,24,48,0.4)]" />}
                 </span>
               </button>
             );
@@ -119,6 +145,7 @@ export function CalendarView(props: {
           <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-[3px] bg-brand" />Booked by Bemby</span>
           <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-[3px] bg-faint" />Booked by you</span>
           <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-[3px] bg-warn" />Needs your OK</span>
+          {(props.busy?.length ?? 0) > 0 && <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-[3px] border border-dashed border-[rgba(26,24,48,0.4)]" />Busy on your calendar</span>}
         </div>
       </section>
 
@@ -128,7 +155,21 @@ export function CalendarView(props: {
           <h2 className="mt-1 font-display text-[22px] font-semibold">{dayTitle}</h2>
         </div>
 
-        {dayItems.length === 0 && <p className="rounded-2xl bg-soft p-4 text-sm leading-relaxed text-muted">Open day. Bemby will offer these times to clients who ask.</p>}
+        {dayItems.length === 0 && dayBusy.length === 0 && <p className="rounded-2xl bg-soft p-4 text-sm leading-relaxed text-muted">Open day. Bemby will offer these times to clients who ask.</p>}
+
+        {dayBusy.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-muted">From your calendar. Bemby won&apos;t book over these.</p>
+            {dayBusy.map((b, i) => (
+              <div key={i} className="flex items-center gap-3.5 rounded-2xl border border-dashed border-[rgba(26,24,48,0.22)] p-3.5">
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="font-display text-[15px] font-semibold">{b.time}</span>
+                  <span className="truncate text-[13px] text-muted">{b.title} · {b.source}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
 
         {dayItems.map((a) =>
           a.status === "requested" ? (

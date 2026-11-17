@@ -29,6 +29,9 @@ export class MemoryRepo implements Repo {
 
   async getBusiness(id: string) { return this.db.businesses.find((b) => b.id === id) ?? null; }
   async getBusinessByPhone(phone: string) { return this.db.businesses.find((b) => b.phone_number === phone) ?? null; }
+  async getBusinessByCalendarToken(token: string) {
+    return this.db.businesses.find((b) => b.calendar_token === token) ?? null;
+  }
   async getBusinessByChannelAccount(channel: "instagram" | "tiktok", accountId: string) {
     return this.db.businesses.find((b) => (channel === "instagram" ? b.instagram_account_id : b.tiktok_account_id) === accountId) ?? null;
   }
