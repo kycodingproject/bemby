@@ -31,14 +31,16 @@ export function QuestionSphere({ className = "" }: { className?: string }) {
   const stage = useRef<HTMLDivElement>(null);
   const nodes = useRef<(HTMLDivElement | null)[]>([]);
   const pts = useRef(points);
-  const hovered = useRef(-1);
+  const hovered = useRef(-1); // the question being looked at (spun to the front)
+  const lockUntil = useRef(0); // ignore other bubbles sliding under the cursor while the sphere turns
   const renderRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const el = stage.current;
     if (!el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let angle = 0;
+    let yaw = 0; // spin around the vertical axis
+    let pitch = TILT; // tilt toward the viewer
     let last = performance.now();
     let frame = 0;
     let visible = true;
@@ -47,7 +49,7 @@ export function QuestionSphere({ className = "" }: { className?: string }) {
       const w = el.clientWidth, h = el.clientHeight;
       // Fit the sphere to the narrower side so bubbles stay inside the column next to the headline.
       const R = Math.min(w * 0.36, h * 0.4), F = R * 3.7, cx = w / 2, cy = h / 2;
-      const ca = Math.cos(angle), sa = Math.sin(angle), ct = Math.cos(TILT), st = Math.sin(TILT);
+      const ca = Math.cos(yaw), sa = Math.sin(yaw), ct = Math.cos(pitch), st = Math.sin(pitch);
       const fit = Math.min(1, w / 1400 + 0.25);
       const P = pts.current;
       for (let i = 0; i < P.length; i++) {
@@ -69,7 +71,23 @@ export function QuestionSphere({ className = "" }: { className?: string }) {
     const tick = (now: number) => {
       const dt = Math.min(now - last, 64);
       last = now;
-      if (hovered.current < 0 && !reduce) angle = (angle + (dt / (SECONDS_PER_TURN * 1000)) * Math.PI * 2) % (Math.PI * 2);
+      const h = hovered.current;
+      const p = h >= 0 ? pts.current[h] : null;
+      // Ease toward the target so the turn feels smooth (instant with reduced motion).
+      const k = reduce ? 1 : 1 - Math.exp(-dt / 220);
+      if (p) {
+        // Turn the sphere until this question faces the viewer, dead center.
+        const toYaw = Math.atan2(-p.x, p.z);
+        const toPitch = Math.atan2(p.y, Math.hypot(p.x, p.z));
+        let d = (toYaw - yaw) % (Math.PI * 2);
+        if (d > Math.PI) d -= Math.PI * 2;
+        if (d < -Math.PI) d += Math.PI * 2;
+        yaw += d * k;
+        pitch += (toPitch - pitch) * k;
+      } else {
+        if (!reduce) yaw = (yaw + (dt / (SECONDS_PER_TURN * 1000)) * Math.PI * 2) % (Math.PI * 2);
+        pitch += (TILT - pitch) * k;
+      }
       render();
       if (visible) frame = requestAnimationFrame(tick);
     };
@@ -88,12 +106,14 @@ export function QuestionSphere({ className = "" }: { className?: string }) {
       render();
     };
     el.addEventListener("touchstart", clear, { passive: true });
+    el.addEventListener("mouseleave", clear); // pointer left the sphere: go back to spinning
     window.addEventListener("resize", render);
     frame = requestAnimationFrame(tick);
     return () => {
       cancelAnimationFrame(frame);
       io.disconnect();
       el.removeEventListener("touchstart", clear);
+      el.removeEventListener("mouseleave", clear);
       window.removeEventListener("resize", render);
     };
   }, []);
@@ -118,6 +138,12 @@ export function QuestionSphere({ className = "" }: { className?: string }) {
     hovered.current = i;
     renderRef.current();
   };
+  /** The pointer moved onto a question: spin it to the front (unless the sphere is still turning to the last one). */
+  const look = (i: number, at: number) => {
+    if (i === hovered.current || at < lockUntil.current) return;
+    lockUntil.current = at + 700;
+    set(i);
+  };
   const unset = (i: number) => {
     if (hovered.current === i) set(-1);
   };
@@ -140,8 +166,7 @@ export function QuestionSphere({ className = "" }: { className?: string }) {
               <div
                 tabIndex={0}
                 className={`qsph-bub ${["qsph-im", "qsph-ig", "qsph-dk"][kind]}`}
-                onMouseEnter={() => set(i)}
-                onMouseLeave={() => unset(i)}
+                onPointerMove={(e) => e.pointerType === "mouse" && look(i, e.timeStamp)}
                 onFocus={() => set(i)}
                 onBlur={() => unset(i)}
                 onTouchStart={(e) => {
