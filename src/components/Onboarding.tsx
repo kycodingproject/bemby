@@ -7,6 +7,7 @@ import { BUSINESS_TYPES, servicesFor, type ServiceDraft } from "@/lib/templates"
 import { ASSISTANT_ROLES, type AssistantRole, type Autonomy } from "@/lib/types";
 import { ServicesEditor } from "./ServicesEditor";
 import { ServicesImport } from "./ServicesImport";
+import { AddressFields } from "./AddressFields";
 import { HoursEditor, type Hours } from "./HoursEditor";
 import { emptyRegistration, NumberRequestFields } from "./NumberRequest";
 import { PLANS } from "@/lib/plans";
@@ -25,6 +26,9 @@ export function Onboarding({ email }: { email: string }) {
   const [type, setType] = useState("hair");
   const [businessName, setBusinessName] = useState("");
   const [ownerName, setOwnerName] = useState("");
+  const [address, setAddress] = useState("");
+  const [addressNote, setAddressNote] = useState("");
+  const [addressPublic, setAddressPublic] = useState(true);
   const [services, setServices] = useState<ServiceDraft[]>(servicesFor("hair"));
   const [touchedServices, setTouchedServices] = useState(false);
   const [hours, setHours] = useState<Hours>(DEFAULT_HOURS);
@@ -51,7 +55,7 @@ export function Onboarding({ email }: { email: string }) {
     if (step < STEPS.length - 1) return setStep(step + 1);
     start(async () => {
       const res = await createBusiness({
-        businessType: type, businessName, ownerName, assistantName, assistantRole,
+        businessType: type, businessName, ownerName, assistantName, assistantRole, address, addressNote, addressPublic,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         services: services.map((s) => ({ ...s, name: s.name.trim() })),
         hours: Object.fromEntries(Object.entries(hours).filter(([, w]) => w?.length)) as Record<string, { start: string; end: string }[]>,
@@ -123,6 +127,16 @@ export function Onboarding({ email }: { email: string }) {
                 <input className="input" value={ownerName} onChange={(e) => setOwnerName(e.target.value)} placeholder="Clients will hear this" />
               </label>
             </div>
+            <AddressFields
+              address={address}
+              note={addressNote}
+              isPublic={addressPublic}
+              onChange={(v) => {
+                if (v.address !== undefined) setAddress(v.address);
+                if (v.note !== undefined) setAddressNote(v.note);
+                if (v.isPublic !== undefined) setAddressPublic(v.isPublic);
+              }}
+            />
           </div>
         )}
 

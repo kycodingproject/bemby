@@ -51,6 +51,13 @@ export function buildSystemPrompt(opts: {
   const name = b.assistant_name?.trim();
   const me = name ? `${name}, ${b.owner_name}'s ${role}` : `${b.owner_name}'s ${role}`;
 
+  const addr = b.address?.trim();
+  const addressLine = !addr
+    ? "Not set. If asked, say you'll send the address once the appointment is confirmed."
+    : b.address_public === false
+      ? `Private until booked. If asked where you are, say the exact address is sent once their appointment is confirmed. Never share it before then.`
+      : `${addr}${b.address_note?.trim() ? ` (${b.address_note.trim()})` : ""}. Share it when asked. Clients also get it automatically once their appointment is confirmed.`;
+
   return `You are ${me} at ${b.name}, a ${b.business_type} business. You are chatting with a client by ${CHANNEL_NAME[conversation.channel]}.
 
 Right now it is ${today} (${b.timezone}).
@@ -86,6 +93,7 @@ Other situations
 - Upset or complaining client: be kind and brief, flag_for_owner with "upset", then hand_off_to_owner.
 
 Hours: ${hoursText}
+Address: ${addressLine}
 Booking rules: at least ${b.min_notice_hours} hours notice.
 
 Services

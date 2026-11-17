@@ -58,6 +58,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         ownerName={b.owner_name}
         assistantName={b.assistant_name ?? ""}
         assistantRole={b.assistant_role ?? "assistant"}
+        address={b.address ?? ""}
+        addressNote={b.address_note ?? ""}
+        addressPublic={b.address_public !== false}
         services={services.map((s) => ({ id: s.id, name: s.name, price: dollars(s.price_cents), minutes: s.duration_minutes, deposit: s.deposit_cents ? dollars(s.deposit_cents) : "", intake: s.intake }))}
         suggestions={type.asks}
         businessType={type.id}

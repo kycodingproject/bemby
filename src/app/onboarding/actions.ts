@@ -16,6 +16,9 @@ const Input = z.object({
   ownerName: z.string().trim().min(1, "Add your first name").max(40),
   assistantName: z.string().trim().min(1, "Give your receptionist a name").max(30),
   assistantRole: z.enum(["assistant", "booking receptionist"]),
+  address: z.string().trim().max(200).optional().default(""),
+  addressNote: z.string().trim().max(200).optional().default(""),
+  addressPublic: z.boolean().optional().default(true),
   timezone: z.string().min(1).max(60),
   services: z
     .array(
@@ -84,6 +87,11 @@ export async function createBusiness(raw: OnboardingInput): Promise<{ error: str
     .select("id")
     .single();
   if (error || !biz) return { error: `Couldn't save your business: ${error?.message}` };
+  if (d.address) {
+    // Saved separately so signup still works if the address columns (migration 0010) aren't there yet.
+    const a = await sb.from("businesses").update({ address: d.address, address_note: d.addressNote || null, address_public: d.addressPublic }).eq("id", biz.id);
+    if (a.error) console.error("address not saved", a.error.message);
+  }
 
   const svc = await sb.from("services").insert(
     d.services.map((s, i) => ({

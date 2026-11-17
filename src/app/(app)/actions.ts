@@ -11,6 +11,7 @@ import { deliver } from "@/lib/channels/deliver";
 import { answerNow, handleInbound } from "@/lib/inbound";
 import { loadStoredMedia } from "@/lib/media";
 import { BACK_NOTE } from "@/lib/triggers";
+import { addressForClient } from "@/lib/address";
 import { hasActivePlan } from "@/lib/billing";
 import { formatSlot } from "@/lib/time";
 import type { AskFirstKey, Autonomy, Business } from "@/lib/types";
@@ -53,7 +54,7 @@ export async function approveAppointment(id: string) {
       appt.kind === "reschedule"
         ? `${first ? `Hi ${first}! ` : ""}You're all set. ${business.owner_name} moved your ${what} to ${when}. See you then!`
         : `${first ? `Hi ${first}! ` : ""}${business.owner_name} confirmed your ${what} for ${when}. See you then!`;
-    await sendToClient(appt.conversation_id, body, "ai");
+    await sendToClient(appt.conversation_id, body + addressForClient(business), "ai");
   }
   refresh();
 }
@@ -218,7 +219,7 @@ export async function saveSpecial(input: { serviceId: string | null; deal: strin
 
 // ---------- Business profile (Settings) ----------
 
-export async function saveBusinessDetails(input: { name: string; ownerName: string; assistantName: string; assistantRole: string }) {
+export async function saveBusinessDetails(input: { name: string; ownerName: string; assistantName: string; assistantRole: string; address?: string; addressNote?: string; addressPublic?: boolean }) {
   const { repo, business } = await ownedBusiness();
   const name = input.name.trim().slice(0, 80);
   const ownerName = input.ownerName.trim().slice(0, 40);
@@ -226,7 +227,13 @@ export async function saveBusinessDetails(input: { name: string; ownerName: stri
   if (!name || !ownerName) return { error: "Add your business name and first name." };
   if (!assistantName) return { error: "Give your receptionist a name." };
   const assistantRole = input.assistantRole === "booking receptionist" ? "booking receptionist" : "assistant";
-  await repo.updateBusiness(business.id, { name, owner_name: ownerName, assistant_name: assistantName, assistant_role: assistantRole });
+  const address = { address: String(input.address ?? "").trim().slice(0, 200) || null, address_note: String(input.addressNote ?? "").trim().slice(0, 200) || null, address_public: input.addressPublic !== false };
+  try {
+    await repo.updateBusiness(business.id, { name, owner_name: ownerName, assistant_name: assistantName, assistant_role: assistantRole, ...address });
+  } catch (e) {
+    if (!/address/i.test((e as Error).message)) throw e;
+    return { error: "Run supabase/migrations/0010_address.sql in Supabase to save your address." };
+  }
   refresh();
   return { ok: true };
 }

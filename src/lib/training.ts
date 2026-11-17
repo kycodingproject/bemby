@@ -7,7 +7,6 @@ export const DAILY_TASKS = 3;
 export const XP_PER_ANSWER = 10;
 
 const GENERAL = [
-  "Where are you located, and is there parking?",
   "What forms of payment do you take (card, cash, Cash App, Zelle)?",
   "Do you take walk-ins, or is it appointment only?",
   "What happens if a client is running late?",

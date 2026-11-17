@@ -56,6 +56,7 @@ export function bookingsIcs(business: Business, appointments: Appointment[], ser
       `DTEND:${stamp(a.ends_at)}`,
       `SUMMARY:${esc(`${pending ? "Pending: " : ""}${service} · ${client}`)}`,
       ...(details ? [`DESCRIPTION:${esc(details)}`] : []),
+      ...(business.address?.trim() ? [`LOCATION:${esc(business.address.trim())}`] : []),
       `STATUS:${pending ? "TENTATIVE" : "CONFIRMED"}`,
       "END:VEVENT",
     );

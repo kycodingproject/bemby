@@ -31,6 +31,12 @@ export interface Business {
   plan: string;
   monthly_text_limit: number;
   instagram_username?: string | null;
+  /** Street address clients come to. Missing until migration 0010 runs. */
+  address?: string | null;
+  /** Extra directions, e.g. "Suite 4, ring the buzzer". */
+  address_note?: string | null;
+  /** Share the address with anyone who asks (true) or only once a booking is confirmed (false, e.g. home studios). */
+  address_public?: boolean;
   /** Calendar links the owner pasted; events on them count as busy. Missing until migration 0008 runs. */
   calendar_feeds?: { id: string; label: string; url: string }[];
   /** All-day events on linked calendars block the whole day (default true). */

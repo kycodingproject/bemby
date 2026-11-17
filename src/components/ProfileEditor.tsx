@@ -6,6 +6,7 @@ import type { ServiceDraft } from "@/lib/templates";
 import { ASSISTANT_ROLES, type AssistantRole, type IntakeItem } from "@/lib/types";
 import { ServicesEditor } from "./ServicesEditor";
 import { ServicesImport } from "./ServicesImport";
+import { AddressFields } from "./AddressFields";
 import { HoursEditor, type Hours } from "./HoursEditor";
 
 type Result = { ok?: boolean; error?: string } | undefined;
@@ -47,6 +48,9 @@ export function ProfileEditor(props: {
   ownerName: string;
   assistantName: string;
   assistantRole: AssistantRole;
+  address: string;
+  addressNote: string;
+  addressPublic: boolean;
   services: ServiceDraft[];
   suggestions: IntakeItem[];
   businessType: string;
@@ -59,6 +63,9 @@ export function ProfileEditor(props: {
   const [ownerName, setOwnerName] = useState(props.ownerName);
   const [assistantName, setAssistantName] = useState(props.assistantName);
   const [assistantRole, setAssistantRole] = useState<AssistantRole>(props.assistantRole);
+  const [address, setAddress] = useState(props.address);
+  const [addressNote, setAddressNote] = useState(props.addressNote);
+  const [addressPublic, setAddressPublic] = useState(props.addressPublic);
   const [services, setServices] = useState(props.services);
   const [hours, setHours] = useState(props.hours);
   const [notice, setNotice] = useState(props.minNoticeHours);
@@ -105,7 +112,18 @@ export function ProfileEditor(props: {
         <p className="text-sm text-muted">
           Clients see: &ldquo;Hi! This is {assistantName.trim() || "Mia"}, {ownerName.trim() || "your"}{ownerName.trim() ? "'s" : ""} {assistantRole}.&rdquo;
         </p>
-        <SaveBar s={details} onSave={() => details.save(() => saveBusinessDetails({ name, ownerName, assistantName, assistantRole }))} />
+        <AddressFields
+          address={address}
+          note={addressNote}
+          isPublic={addressPublic}
+          onChange={(v) => {
+            if (v.address !== undefined) setAddress(v.address);
+            if (v.note !== undefined) setAddressNote(v.note);
+            if (v.isPublic !== undefined) setAddressPublic(v.isPublic);
+            details.touch();
+          }}
+        />
+        <SaveBar s={details} onSave={() => details.save(() => saveBusinessDetails({ name, ownerName, assistantName, assistantRole, address, addressNote, addressPublic }))} />
       </section>
 
       <section aria-labelledby="services-h" className="card flex flex-col gap-4 p-6">
