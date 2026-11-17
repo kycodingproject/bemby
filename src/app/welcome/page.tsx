@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChatDemo } from "@/components/landing/ChatDemo";
 import { Reveal, RotatingWord } from "@/components/landing/Motion";
+import { QuestionSphere } from "@/components/landing/QuestionSphere";
 import { PLANS } from "@/lib/plans";
 
 export const metadata = {
@@ -106,8 +107,18 @@ export default function Welcome() {
         </div>
       </section>
 
+      {/* The questions clients ask */}
+      <section aria-labelledby="questions-h" className="relative z-10 pt-20">
+        <Reveal className="mx-auto max-w-3xl px-4 text-center">
+          <p className="label">Sound familiar?</p>
+          <h2 id="questions-h" className="mt-3 font-display text-4xl font-bold tracking-tight">The same questions, all day, in your DMs.</h2>
+          <p className="mt-3 text-lg text-ink-2">Your receptionist answers every one of them, so you don&apos;t have to stop mid-appointment.</p>
+        </Reveal>
+        <QuestionSphere />
+      </section>
+
       {/* How it works */}
-      <section className="relative z-10 mx-auto max-w-6xl px-4 py-24 md:px-8">
+      <section className="relative z-10 mx-auto max-w-6xl px-4 pb-24 pt-10 md:px-8">
         <Reveal>
           <p className="label">How it works</p>
           <h2 className="mt-3 max-w-2xl font-display text-4xl font-bold tracking-tight">From &ldquo;hi!&rdquo; to booked, without you picking up your phone.</h2>
