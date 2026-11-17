@@ -57,7 +57,7 @@ export async function homeData(repo: Repo, businessId: string, now = new Date())
 
   const convos = await repo.listConversations(businessId);
   const active = convos.filter((c) => now.getTime() - new Date(c.last_message_at).getTime() < 7 * 86400_000);
-  const byChannel = { sms: 0, instagram: 0 };
+  const byChannel = { sms: 0, instagram: 0, tiktok: 0 };
   active.forEach((c) => byChannel[c.channel]++);
   const pending = all.filter((a) => a.status === "requested" && new Date(a.starts_at) > now).length;
   const needsYou = await countNeedsYou(repo, businessId);

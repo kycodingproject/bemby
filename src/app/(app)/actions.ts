@@ -278,12 +278,19 @@ export async function saveHours(input: { hours: unknown; minNoticeHours: number;
 
 // ---------- Channels ----------
 
-export async function disconnectChannel(kind: "instagram") {
+export async function disconnectChannel(kind: "instagram" | "tiktok") {
   const { repo, business } = await ownedBusiness();
-  if (isDemo() || kind !== "instagram") return;
+  if (isDemo()) return;
   const { saveChannelSecrets } = await import("@/lib/channels/meta");
-  await saveChannelSecrets(business.id, { instagram_user_id: null, instagram_username: null, instagram_token: null, instagram_token_expires_at: null });
-  await repo.updateBusiness(business.id, { instagram_account_id: null, instagram_username: null });
+  if (kind === "instagram") {
+    await saveChannelSecrets(business.id, { instagram_user_id: null, instagram_username: null, instagram_token: null, instagram_token_expires_at: null });
+    await repo.updateBusiness(business.id, { instagram_account_id: null, instagram_username: null });
+  } else if (kind === "tiktok") {
+    await saveChannelSecrets(business.id, {
+      tiktok_open_id: null, tiktok_username: null, tiktok_access_token: null, tiktok_refresh_token: null, tiktok_token_expires_at: null, tiktok_refresh_expires_at: null,
+    });
+    await repo.updateBusiness(business.id, { tiktok_account_id: null, tiktok_username: null });
+  }
   refresh();
 }
 

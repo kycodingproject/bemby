@@ -5,6 +5,7 @@ import type { Conversation, Message } from "../types";
 import { isDemo } from "../repo";
 import { DEMO_TEST_PHONE } from "../repo/seed";
 import { getChannelSecrets, refreshInstagramToken, saveChannelSecrets, sendInstagramText } from "./meta";
+import { sendTikTokText } from "./tiktok";
 
 let _twilio: ReturnType<typeof twilio> | null = null;
 export function twilioClient() {
@@ -34,6 +35,17 @@ export async function deliver(repo: Repo, conversation: Conversation, message: M
       if (!business.phone_number || !client.phone) throw new Error("Missing phone number");
       const sent = await twilioClient().messages.create({ from: business.phone_number, to: client.phone, body: message.body });
       return repo.updateMessage(message.id, { status: "sent", provider_message_id: sent.sid });
+    }
+    if (conversation.channel === "tiktok") {
+      // TikTok only lets a business reply within 48 hours of the client's last message.
+      const recent = await repo.listMessages(conversation.id, 60);
+      const last = [...recent].reverse().find((m) => m.author === "client");
+      if (!last || Date.now() - new Date(last.created_at).getTime() > 48 * 3600_000) {
+        throw new Error("TikTok only allows replies within 48 hours of the client's last message. Ask them to message you again.");
+      }
+      if (!client.tiktok_id) throw new Error("Missing the client's TikTok conversation");
+      const id = await sendTikTokText({ businessId: business.id, conversationId: client.tiktok_id, text: message.body });
+      return repo.updateMessage(message.id, { status: "sent", provider_message_id: id || null });
     }
     // Instagram: replies are free within 24h of the client's last message, then need the HUMAN_AGENT tag (up to 7 days).
     const msgs = await repo.listMessages(conversation.id, 60);

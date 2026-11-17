@@ -6,7 +6,7 @@ import { Thread } from "@/components/Thread";
 import { TestBemby } from "@/components/TestBemby";
 import { AutoRefresh } from "@/components/AutoRefresh";
 
-const CHANNEL = { sms: "Text", instagram: "Instagram" } as const;
+const CHANNEL = { sms: "Text", instagram: "Instagram", tiktok: "TikTok" } as const;
 
 export default async function InboxPage({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
   const repo = getRepo();

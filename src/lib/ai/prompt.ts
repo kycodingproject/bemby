@@ -4,7 +4,7 @@ import { formatSlot } from "../time";
 const money = (cents: number | null) => (cents == null ? "price varies, ask the owner" : `$${(cents / 100).toFixed(cents % 100 ? 2 : 0)}`);
 const hours = (m: number) => (m % 60 === 0 ? `${m / 60} hr` : m > 60 ? `${Math.floor(m / 60)} hr ${m % 60} min` : `${m} min`);
 
-const CHANNEL_NAME = { sms: "text message", instagram: "Instagram DM" } as const;
+const CHANNEL_NAME = { sms: "text message", instagram: "Instagram DM", tiktok: "TikTok DM" } as const;
 
 export function buildSystemPrompt(opts: {
   business: Business;

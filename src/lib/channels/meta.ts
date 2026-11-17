@@ -118,6 +118,12 @@ export interface ChannelSecrets {
   instagram_username: string | null;
   instagram_token: string | null;
   instagram_token_expires_at: string | null;
+  tiktok_open_id: string | null;
+  tiktok_username: string | null;
+  tiktok_access_token: string | null;
+  tiktok_refresh_token: string | null;
+  tiktok_token_expires_at: string | null;
+  tiktok_refresh_expires_at: string | null;
 }
 
 export async function getChannelSecrets(businessId: string): Promise<ChannelSecrets | null> {

@@ -9,6 +9,9 @@ import { NUMBER_APPROVAL, PLANS } from "@/lib/plans";
 export function ChannelsPanel(props: {
   demo: boolean;
   instagram: string | null;
+  /** null = not connected. Only shown once TikTok is set up on the server. */
+  tiktok: string | null;
+  tiktokAvailable: boolean;
   phone: string | null;
   textingStatus: "none" | "requested" | "pending" | "active" | "failed";
   email: string;
@@ -56,6 +59,20 @@ export function ChannelsPanel(props: {
           connectLink("/api/connect/instagram", "Connect Instagram")
         )}
       </div>
+
+      {(props.tiktokAvailable || props.tiktok) && (
+        <div className={row}>
+          <div>
+            <p className="text-sm font-semibold">TikTok DMs</p>
+            <p className="mt-0.5 text-[13px] text-muted">{props.tiktok ? `Connected as ${props.tiktok}` : "Needs a TikTok Business account (free to switch in the TikTok app)"}</p>
+          </div>
+          {props.tiktok ? (
+            <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => start(() => disconnectChannel("tiktok"))}>Disconnect</button>
+          ) : (
+            connectLink("/api/connect/tiktok", "Connect TikTok")
+          )}
+        </div>
+      )}
 
       <div className={row}>
         <div className="min-w-56 flex-1">

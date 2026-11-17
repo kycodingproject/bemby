@@ -15,6 +15,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const today = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: d.business.timezone }).format(new Date());
   const channelLine = [
     d.byChannel.instagram && `${d.byChannel.instagram} on Instagram`,
+    d.byChannel.tiktok && `${d.byChannel.tiktok} on TikTok`,
     d.byChannel.sms && `${d.byChannel.sms} by text`,
   ].filter(Boolean).join(" · ");
 

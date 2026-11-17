@@ -1,6 +1,6 @@
 import { currentBusinessId, getRepo, isDemo } from "@/lib/repo";
 import { currentUser } from "@/lib/auth";
-import { getChannelSecrets } from "@/lib/channels/meta";
+import { tiktokConfigured } from "@/lib/channels/tiktok";
 import { ChannelsPanel } from "@/components/ChannelsPanel";
 import { SettingsForm } from "@/components/SettingsForm";
 import { ProfileEditor } from "@/components/ProfileEditor";
@@ -33,6 +33,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <ChannelsPanel
         demo={isDemo()}
         instagram={b.instagram_account_id ? b.instagram_username ?? "connected" : null}
+        tiktok={b.tiktok_account_id ? (b.tiktok_username ? `@${b.tiktok_username}` : "your TikTok account") : null}
+        tiktokAvailable={!isDemo() && tiktokConfigured()}
         phone={fmtPhone(b.phone_number)}
         textingStatus={b.texting_status ?? "none"}
         email={email}

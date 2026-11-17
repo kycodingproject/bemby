@@ -19,7 +19,7 @@ export default async function DataDeletionPage({ searchParams }: { searchParams:
       <p>You can delete your data yourself at any time:</p>
       <ul>
         <li>
-          <strong>Disconnect Instagram:</strong> in {app}, go to Settings → Where clients reach you → Disconnect. We immediately delete the access tokens for that account. You can also remove {app} in Instagram (Settings → Website permissions → Apps and websites) or Facebook (Settings → Business integrations).
+          <strong>Disconnect Instagram or TikTok:</strong> in {app}, go to Settings → Where clients reach you → Disconnect. We immediately delete the access tokens for that account. You can also remove {app} in Instagram (Settings → Website permissions → Apps and websites) or Facebook (Settings → Business integrations).
         </li>
         <li>
           <strong>Delete your whole account:</strong> in {app}, go to Settings → Delete account. This cancels your subscription and permanently deletes your business, services, conversations, appointments, photos and connected accounts. Remaining backups are removed within 30 days.

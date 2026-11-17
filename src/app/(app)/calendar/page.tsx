@@ -3,7 +3,7 @@ import { photoUrl } from "@/lib/media";
 import { addDaysLocal, formatSlot, formatTime, localDateKey, zonedParts, zonedTimeToUtc } from "@/lib/time";
 import { CalendarView, type CalAppt } from "@/components/CalendarView";
 
-const CHANNEL = { sms: "text", instagram: "Instagram" } as const;
+const CHANNEL = { sms: "text", instagram: "Instagram", tiktok: "TikTok" } as const;
 
 export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ m?: string; pending?: string }> }) {
   const repo = getRepo();

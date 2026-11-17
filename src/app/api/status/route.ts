@@ -18,6 +18,7 @@ export async function GET() {
     STRIPE_SECRET_KEY: !has("STRIPE_SECRET_KEY") ? "MISSING (payments are off)" : process.env.STRIPE_SECRET_KEY!.trim().startsWith("sk_") ? `set (${process.env.STRIPE_SECRET_KEY!.trim().startsWith("sk_live_") ? "live" : "test"} mode)` : "set, but doesn't start with sk_ (use the Secret key, not the Publishable key)",
     STRIPE_WEBHOOK_SECRET: !has("STRIPE_WEBHOOK_SECRET") ? "MISSING" : process.env.STRIPE_WEBHOOK_SECRET!.trim().startsWith("whsec_") ? "set" : "set, but doesn't start with whsec_",
     INSTAGRAM_APP_ID: has("INSTAGRAM_APP_ID") ? "set" : "MISSING",
+    TIKTOK_APP_ID: has("TIKTOK_APP_ID") && has("TIKTOK_APP_SECRET") ? "set" : "not set (TikTok DMs are off)",
     data_mode: isMemory() ? "temporary memory (database not connected)" : "Supabase database",
     vercel_environment: process.env.VERCEL_ENV ?? "local",
   };
@@ -37,6 +38,8 @@ export async function GET() {
       status.migration_0005 = m5.error ? "NOT RUN (run 0005_trigger_words.sql)" : "done";
       const m6 = await sb.from("businesses").select("assistant_name").limit(1);
       status.migration_0006 = m6.error ? "NOT RUN (run 0006_receptionist.sql)" : "done";
+      const m7 = await sb.from("businesses").select("tiktok_account_id").limit(1);
+      status.migration_0007 = m7.error ? "NOT RUN (run 0007_tiktok.sql; only needed for TikTok)" : "done";
     } catch (e) {
       status.database = `error: ${(e as Error).message}`;
     }

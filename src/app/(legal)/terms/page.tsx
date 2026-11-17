@@ -16,7 +16,7 @@ export default function TermsPage() {
 
       <h2>1. What {app} does</h2>
       <p>
-        {app} is an AI receptionist. It answers your clients by text message and Instagram, collects booking details, suggests open times, and sends appointment requests to you. {app} never confirms an appointment without your approval. You choose how much it does on its own in Settings, and you can pause it or take over any conversation.
+        {app} is an AI receptionist. It answers your clients by text message, Instagram and TikTok, collects booking details, suggests open times, and sends appointment requests to you. {app} never confirms an appointment without your approval. You choose how much it does on its own in Settings, and you can pause it or take over any conversation.
       </p>
 
       <h2>2. Your account</h2>
