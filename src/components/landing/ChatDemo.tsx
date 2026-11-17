@@ -109,12 +109,15 @@ export function ChatDemo() {
   const shownScript = still ? SCRIPTS[0] : script;
 
   return (
-    <div className="relative mx-auto w-full max-w-[380px]" aria-label="Example: Bemby booking a client in the DMs" role="img">
+    <div className="grid items-center gap-x-16 gap-y-10 lg:grid-cols-2" aria-label="Example: a client chat on the left, and the booking request the owner gets on the right" role="img">
+     <div className="flex flex-col items-center gap-5">
+      <p className="label">What your client sees</p>
+     <div className="relative w-full max-w-[380px]">
       {/* Floating wins around the phone */}
       <div aria-hidden className="landing-float absolute right-[calc(100%+14px)] top-24 z-10 hidden whitespace-nowrap rounded-2xl bg-white/90 px-3.5 py-2.5 text-xs font-semibold shadow-[0_12px_30px_rgba(60,40,140,0.18)] backdrop-blur xl:block">
         <span className="text-brand-ink">+50 XP</span> <span className="text-muted">· Level 4</span>
       </div>
-      <div aria-hidden className="landing-float-slow absolute -right-5 -top-5 z-10 hidden whitespace-nowrap rounded-2xl bg-white/90 px-3.5 py-2.5 text-xs font-semibold shadow-[0_12px_30px_rgba(60,40,140,0.18)] backdrop-blur lg:block">
+      <div aria-hidden className="landing-float-slow absolute left-[calc(100%-34px)] top-1 z-10 hidden whitespace-nowrap rounded-2xl bg-white/90 px-3.5 py-2.5 text-xs font-semibold shadow-[0_12px_30px_rgba(60,40,140,0.18)] backdrop-blur lg:block">
         🔥 6-day booking streak
       </div>
       <div aria-hidden className="landing-float absolute right-[calc(100%+14px)] bottom-28 z-10 hidden whitespace-nowrap rounded-2xl bg-white/90 px-3.5 py-2.5 text-xs font-semibold shadow-[0_12px_30px_rgba(60,40,140,0.18)] backdrop-blur xl:block [animation-delay:1.2s]">
@@ -167,11 +170,25 @@ export function ChatDemo() {
         </div>
 
       </div>
+     </div>
+     </div>
 
       {/* The owner's side: the request lands on the calendar, just like in the dashboard */}
-      <div className="mt-6 min-h-[392px]">
+      <div className="mx-auto flex w-full max-w-[440px] flex-col items-center gap-5">
+        <p className="label">What you see</p>
+        <div className="relative min-h-[392px] w-full">
+        {p.card === "none" && (
+          <div className={`absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[18px] border-2 border-dashed border-[rgba(106,75,245,0.3)] p-6 text-center transition-opacity duration-500 ${p.leaving ? "opacity-0" : ""}`}>
+            <span className="flex gap-1" aria-hidden>
+              {[0, 1, 2].map((d) => (
+                <span key={d} className="landing-dot size-2 rounded-full bg-brand" style={{ animationDelay: `${d * 0.15}s` }} />
+              ))}
+            </span>
+            <p className="max-w-56 text-sm text-muted">Your receptionist is chatting. The booking request lands here for you to approve.</p>
+          </div>
+        )}
         {p.card !== "none" && (
-          <article className={`landing-card flex flex-col gap-2.5 rounded-[18px] bg-[#fff8ef] p-4 shadow-[inset_0_0_0_1px_rgba(163,87,10,0.4),0_20px_44px_rgba(60,40,140,0.18)] transition-opacity duration-500 ${p.leaving ? "opacity-0" : ""}`}>
+          <article className={`landing-card flex flex-col gap-3 rounded-[20px] bg-[#fff8ef] p-5 shadow-[inset_0_0_0_1px_rgba(163,87,10,0.4),0_20px_44px_rgba(60,40,140,0.18)] transition-opacity duration-500 ${p.leaving ? "opacity-0" : ""}`}>
             <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full bg-warn-chip px-2.5 py-1 text-xs font-semibold text-warn">New booking · needs your OK</span>
               <span className="text-xs text-muted">via {shownScript.channel}</span>
@@ -210,6 +227,7 @@ export function ChatDemo() {
             </div>
           </article>
         )}
+        </div>
       </div>
     </div>
   );

@@ -1,40 +1,36 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
-const QUESTIONS = [
-  "Are you accepting new clients?", "What’s your availability this week?", "Do you take walk-ins or is it appointment only?", "How far in advance do I need to book?",
-  "Do you have evening or weekend appointments?", "How do I book — online, text, or call?", "Do you require a deposit to book?", "What’s your cancellation or reschedule policy?",
-  "What happens if I’m running late?", "Can I book multiple services in one appointment?", "How much is a women’s/men’s haircut?", "How much does color cost?",
-  "Do prices vary based on hair length or thickness?", "Is a consultation free?", "What forms of payment do you accept?", "Do you charge extra for long or thick hair?",
-  "Is the price for a blowout included with the cut?", "Do you offer any first-time client discounts?", "Do you sell gift cards?", "Is tipping expected, and can I tip by card?",
-  "Do you do balayage / highlights / foils?", "Can you go from dark to blonde in one session?", "Do you do color correction?", "Do you offer extensions, and what type?",
-  "Do you do keratin or smoothing treatments?", "Do you work with curly or textured hair?", "Do you do braids, locs, or protective styles?", "Do you do perms?",
-  "Do you offer bridal or event styling?", "Do you do kids’ haircuts?", "Do I need a consultation before my color appointment?", "How long will my appointment take?",
-  "Should I come with clean or dirty hair?", "Can I send you inspiration photos beforehand?", "Do you do a patch or strand test for color?", "Will my hair be damaged by bleaching?",
-  "How many sessions will it take to reach my goal color?", "Can you work with box-dyed hair?", "What if I don’t like how it turns out?", "Is there a fix or adjustment policy after my appointment?",
-  "How often should I come back for a trim or touch-up?", "How long will my color last?", "What products should I use at home?", "When can I wash my hair after coloring or a keratin treatment?",
-  "Do you sell the products you use?", "How do I keep my blonde from turning brassy?", "Where are you located, and is there parking?", "How long have you been doing hair, and what do you specialize in?",
-  "Can I see photos of your work or your Instagram?", "Can I bring a friend or my child with me?",
-];
+import { useEffect, useMemo, useRef, useState } from "react";
+import { SERVICE_QUESTIONS } from "./questions";
 
 const SECONDS_PER_TURN = 70; // slower = bigger number
 const TILT = -0.28; // sphere tilt toward the viewer (radians)
 const GOLD = Math.PI * (3 - Math.sqrt(5));
-const N = QUESTIONS.length;
+const NAMES = Object.keys(SERVICE_QUESTIONS);
 
-// Spread the bubbles evenly over a sphere.
-const POINTS = QUESTIONS.map((_, i) => {
-  const y = 1 - (2 * (i + 0.5)) / N;
-  const r = Math.sqrt(1 - y * y);
-  const th = i * GOLD;
-  return { x: r * Math.cos(th), y, z: r * Math.sin(th) };
-});
+/** Spread n bubbles evenly over a sphere. */
+const pointsFor = (n: number) =>
+  Array.from({ length: n }, (_, i) => {
+    const y = 1 - (2 * (i + 0.5)) / n;
+    const r = Math.sqrt(1 - y * y);
+    const th = i * GOLD;
+    return { x: r * Math.cos(th), y, z: r * Math.sin(th) };
+  });
 
-/** A slowly turning globe of the questions clients send. Hover or tap a bubble to bring it forward. */
-export function QuestionSphere() {
+/**
+ * A slowly turning globe of the questions clients send, with a tab per kind of business.
+ * Hover or tap a bubble to bring it forward.
+ */
+export function QuestionSphere({ className = "" }: { className?: string }) {
+  const [tab, setTab] = useState(NAMES[0]);
+  const [shown, setShown] = useState(NAMES[0]); // the list on screen (changes after the fade-out)
+  const [swapping, setSwapping] = useState(false);
+  const list = SERVICE_QUESTIONS[shown];
+  const points = useMemo(() => pointsFor(list.length), [list.length]);
+
   const stage = useRef<HTMLDivElement>(null);
   const nodes = useRef<(HTMLDivElement | null)[]>([]);
+  const pts = useRef(points);
   const hovered = useRef(-1);
   const renderRef = useRef<() => void>(() => {});
 
@@ -49,16 +45,19 @@ export function QuestionSphere() {
 
     const render = () => {
       const w = el.clientWidth, h = el.clientHeight;
-      const R = Math.min(w, h) * 0.4, F = R * 3.7, cx = w / 2, cy = h / 2;
+      // Fit the sphere to the narrower side so bubbles stay inside the column next to the headline.
+      const R = Math.min(w * 0.36, h * 0.4), F = R * 3.7, cx = w / 2, cy = h / 2;
       const ca = Math.cos(angle), sa = Math.sin(angle), ct = Math.cos(TILT), st = Math.sin(TILT);
-      for (let i = 0; i < N; i++) {
+      const fit = Math.min(1, w / 1400 + 0.25);
+      const P = pts.current;
+      for (let i = 0; i < P.length; i++) {
         const node = nodes.current[i];
         if (!node) continue;
-        const p = POINTS[i];
+        const p = P[i];
         const x1 = p.x * ca + p.z * sa, z1 = -p.x * sa + p.z * ca;
         const y2 = p.y * ct - z1 * st, z2 = p.y * st + z1 * ct;
         const persp = F / (F - z2 * R), depth = (z2 + 1) / 2, isH = i === hovered.current;
-        const s = persp * (0.72 + 0.28 * depth) * Math.min(1, w / 1400 + 0.25);
+        const s = persp * (0.72 + 0.28 * depth) * fit;
         node.style.transform = `translate(${cx + x1 * R * persp}px,${cy - y2 * R * persp}px) translate(-50%,-50%) scale(${s})`;
         node.style.opacity = String(isH ? 1 : 0.18 + 0.82 * depth);
         node.style.zIndex = String(isH ? 1000 : Math.round(depth * 500));
@@ -99,6 +98,22 @@ export function QuestionSphere() {
     };
   }, []);
 
+  // A new list of questions: lay the new bubbles out on the sphere straight away.
+  useEffect(() => {
+    pts.current = points;
+    hovered.current = -1;
+    renderRef.current();
+  }, [points, shown]);
+
+  const select = (name: string) => {
+    if (name === tab) return;
+    setTab(name);
+    setSwapping(true);
+    setTimeout(() => {
+      setShown(name);
+      setSwapping(false);
+    }, 250);
+  };
   const set = (i: number) => {
     hovered.current = i;
     renderRef.current();
@@ -108,33 +123,42 @@ export function QuestionSphere() {
   };
 
   return (
-    <div ref={stage} className="qsph-stage">
-      {QUESTIONS.map((q, i) => {
-        const im = i % 2 === 0;
-        return (
-          <div key={i} ref={(n) => { nodes.current[i] = n; }} className="qsph-node">
-            <div
-              tabIndex={0}
-              className={`qsph-bub ${im ? "qsph-im" : "qsph-ig"}`}
-              onMouseEnter={() => set(i)}
-              onMouseLeave={() => unset(i)}
-              onFocus={() => set(i)}
-              onBlur={() => unset(i)}
-              onTouchStart={(e) => {
-                e.stopPropagation();
-                set(hovered.current === i ? -1 : i);
-              }}
-            >
-              {q}
-              {im && (
-                <svg aria-hidden width="18" height="22" viewBox="0 0 18 22">
-                  <path d="M0 0 C1 9 6 17 18 22 C9 22 3 20 0 17 Z" fill="#1982FC" />
-                </svg>
-              )}
+    <div className={`qsph ${className}`}>
+      <div className="qsph-tabs" role="tablist" aria-label="Choose a service">
+        {NAMES.map((name) => (
+          <button key={name} type="button" role="tab" aria-selected={name === tab} className="qsph-tab" onClick={() => select(name)}>
+            {name}
+          </button>
+        ))}
+      </div>
+      <div ref={stage} className={`qsph-stage ${swapping ? "is-swapping" : ""}`} role="tabpanel" aria-label={`Questions ${tab === "All" ? "clients" : `${tab.toLowerCase()} clients`} ask`}>
+        {list.map((q, i) => {
+          const im = i % 2 === 0;
+          return (
+            <div key={`${shown}-${i}`} ref={(n) => { nodes.current[i] = n; }} className="qsph-node">
+              <div
+                tabIndex={0}
+                className={`qsph-bub ${im ? "qsph-im" : "qsph-ig"}`}
+                onMouseEnter={() => set(i)}
+                onMouseLeave={() => unset(i)}
+                onFocus={() => set(i)}
+                onBlur={() => unset(i)}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  set(hovered.current === i ? -1 : i);
+                }}
+              >
+                {q}
+                {im && (
+                  <svg aria-hidden width="18" height="22" viewBox="0 0 18 22">
+                    <path d="M0 0 C1 9 6 17 18 22 C9 22 3 20 0 17 Z" fill="#1982FC" />
+                  </svg>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

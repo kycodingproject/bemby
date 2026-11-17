@@ -61,8 +61,8 @@ export default function Welcome() {
       </header>
 
       {/* Hero */}
-      <section className="relative z-10 mx-auto grid max-w-6xl items-center gap-14 lg:items-start px-4 pb-24 pt-8 md:px-8 lg:grid-cols-[1.05fr_1fr] lg:pt-14">
-        <div className="flex flex-col items-start gap-6 lg:pt-24">
+      <section className="relative z-10 mx-auto grid max-w-7xl items-center gap-x-8 gap-y-12 px-4 pb-16 pt-8 md:px-8 lg:grid-cols-[1fr_1.1fr] lg:pt-10">
+        <div className="flex flex-col items-start gap-6">
           <p className="landing-rise inline-flex items-center gap-2 rounded-full bg-white/80 px-3.5 py-1.5 text-[13px] font-semibold text-brand-ink shadow-[0_0_0_1px_rgba(106,75,245,0.18)] backdrop-blur">
             <span className="size-2 rounded-full bg-brand landing-ping" /> Your receptionist for Instagram, Messenger & text
           </p>
@@ -91,9 +91,19 @@ export default function Welcome() {
             ))}
           </ul>
         </div>
-        <div className="landing-rise pb-10 [animation-delay:200ms]">
-          <ChatDemo />
+        <div className="landing-rise min-w-0 [animation-delay:200ms]">
+          <p className="mb-3 text-center text-sm font-semibold text-ink-2">The questions filling your DMs. Pick your craft:</p>
+          <QuestionSphere />
         </div>
+      </section>
+
+      {/* Watch it work: the client's chat on the left, the owner's booking request on the right */}
+      <section aria-labelledby="demo-h" className="relative z-10 mx-auto max-w-6xl px-4 pb-24 md:px-8">
+        <Reveal className="mb-10 text-center">
+          <p className="label">Watch it work</p>
+          <h2 id="demo-h" className="mt-3 font-display text-4xl font-bold tracking-tight">One chat in. One booking request out.</h2>
+        </Reveal>
+        <ChatDemo />
       </section>
 
       {/* Who it's for */}
@@ -107,18 +117,8 @@ export default function Welcome() {
         </div>
       </section>
 
-      {/* The questions clients ask */}
-      <section aria-labelledby="questions-h" className="relative z-10 pt-20">
-        <Reveal className="mx-auto max-w-3xl px-4 text-center">
-          <p className="label">Sound familiar?</p>
-          <h2 id="questions-h" className="mt-3 font-display text-4xl font-bold tracking-tight">The same questions, all day, in your DMs.</h2>
-          <p className="mt-3 text-lg text-ink-2">Your receptionist answers every one of them, so you don&apos;t have to stop mid-appointment.</p>
-        </Reveal>
-        <QuestionSphere />
-      </section>
-
       {/* How it works */}
-      <section className="relative z-10 mx-auto max-w-6xl px-4 pb-24 pt-10 md:px-8">
+      <section className="relative z-10 mx-auto max-w-6xl px-4 py-24 md:px-8">
         <Reveal>
           <p className="label">How it works</p>
           <h2 className="mt-3 max-w-2xl font-display text-4xl font-bold tracking-tight">From &ldquo;hi!&rdquo; to booked, without you picking up your phone.</h2>
