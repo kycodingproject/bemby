@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { answerTraining, skipTraining } from "@/app/(app)/actions";
+import { answerTraining } from "@/app/(app)/actions";
+import { useDictation } from "@/hooks/useDictation";
 
 export interface TrainingTask {
   id: string;
@@ -78,6 +79,7 @@ function Task({ task }: { task: TrainingTask }) {
   const [error, setError] = useState("");
   const [busy, start] = useTransition();
   const id = `ans-${task.id}`;
+  const voice = useDictation((t) => setAnswer((a) => (a.trim() ? `${a.trimEnd()} ${t}` : t)));
   return (
     <li className={`flex flex-col gap-2.5 rounded-2xl bg-card p-4 ${task.fromChat ? "shadow-[inset_0_0_0_2px_rgba(234,128,30,0.6)]" : "shadow-[inset_0_0_0_1px_rgba(234,128,30,0.25)]"}`}>
       {task.fromChat && (
@@ -92,6 +94,7 @@ function Task({ task }: { task: TrainingTask }) {
         onSubmit={(e) => {
           e.preventDefault();
           setError("");
+          voice.stop();
           start(async () => {
             const r = await answerTraining(task.id, answer);
             if (r && "error" in r && r.error) setError(r.error);
@@ -101,15 +104,31 @@ function Task({ task }: { task: TrainingTask }) {
         <textarea
           id={id}
           className="input min-h-20 bg-soft py-2.5 leading-relaxed"
-          value={answer}
+          value={answer + (voice.interim ? (answer ? " " : "") + voice.interim : "")}
           maxLength={1000}
           onChange={(e) => setAnswer(e.target.value)}
-          placeholder="Answer the way you'd tell a client, e.g. “Yes! Street parking out front, and there's a free lot behind the building.”"
+          placeholder="Type or say your answer the way you'd tell a client, e.g. “Yes! Street parking out front, and there's a free lot behind the building.” If it doesn't apply, just say so, like “We don't offer that.”"
         />
-        {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+        {voice.listening && (
+          <p role="status" className="flex items-center gap-2 text-[13px] font-semibold text-[#b25a06]">
+            <span className="landing-ping size-2 rounded-full bg-danger" aria-hidden /> Listening… answer like you&apos;re telling a client. Tap Stop when you&apos;re done.
+          </p>
+        )}
+        {(error || voice.error) && <p role="alert" className="text-sm text-danger">{error || voice.error}</p>}
         <div className="flex flex-wrap gap-2">
           <button className="btn bg-[#ea801e] text-white hover:bg-[#d6700f] disabled:opacity-50" disabled={busy || answer.trim().length < 2}>{busy ? "Saving…" : "Save answer"}</button>
-          <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => start(() => skipTraining(task.id))}>Doesn&apos;t apply to me</button>
+          <button
+            type="button"
+            className={`btn ${voice.listening ? "bg-danger text-white hover:bg-danger/90" : "btn-ghost bg-card"}`}
+            disabled={busy}
+            onClick={voice.listening ? voice.stop : voice.start}
+            aria-pressed={voice.listening}
+          >
+            <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden>
+              {voice.listening ? <rect x="7" y="7" width="10" height="10" rx="1.5" /> : <path d="M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3zm-7 9a7 7 0 0014 0M12 19v3" />}
+            </svg>
+            {voice.listening ? "Stop" : "Say it instead"}
+          </button>
         </div>
       </form>
     </li>
