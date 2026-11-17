@@ -70,10 +70,18 @@ const SCRIPTS: Script[] = [
 
 type Phase = { shown: number; typing: boolean; card: "none" | "request"; leaving: boolean };
 
+// The owner's progress, like the Home screen in the app. Each demo booking adds one (then it starts over).
+const GOAL = 20;
+const BASE_BOOKED = 13;
+const BASE_XP = 3740; // level 4, 740 / 1000
+const LEVELS = ["Getting started", "Rising", "Regular", "Booking Pro", "Booked Solid", "Legend"];
+
 export function ChatDemo() {
   const [s, setS] = useState(0);
   const [p, setP] = useState<Phase>({ shown: 0, typing: false, card: "none", leaving: false });
   const [still, setStill] = useState(false);
+  const [wins, setWins] = useState(0); // bookings landed so far in the demo
+  const [gain, setGain] = useState(false); // show the "+1 booking · +20 XP" pop
   const script = SCRIPTS[s];
 
   useEffect(() => {
@@ -97,6 +105,11 @@ export function ChatDemo() {
       }
     });
     at(1000, () => setP((x) => ({ ...x, card: "request" })));
+    at(1300, () => {
+      setWins((w) => (w >= 4 ? 0 : w + 1));
+      setGain(true);
+    });
+    at(1800, () => setGain(false));
     at(5200, () => setP((x) => ({ ...x, leaving: true }))); // time to read the request
     at(500, () => {
       setP({ shown: 0, typing: false, card: "none", leaving: false });
@@ -114,12 +127,6 @@ export function ChatDemo() {
       <p className="label">What your client sees</p>
      <div className="relative w-full max-w-[380px]">
       {/* Floating wins around the phone */}
-      <div aria-hidden className="landing-float absolute right-[calc(100%+14px)] top-24 z-10 hidden whitespace-nowrap rounded-2xl bg-white/90 px-3.5 py-2.5 text-xs font-semibold shadow-[0_12px_30px_rgba(60,40,140,0.18)] backdrop-blur xl:block">
-        <span className="text-brand-ink">+50 XP</span> <span className="text-muted">· Level 4</span>
-      </div>
-      <div aria-hidden className="landing-float-slow absolute left-[calc(100%-34px)] top-1 z-10 hidden whitespace-nowrap rounded-2xl bg-white/90 px-3.5 py-2.5 text-xs font-semibold shadow-[0_12px_30px_rgba(60,40,140,0.18)] backdrop-blur lg:block">
-        🔥 6-day booking streak
-      </div>
       <div aria-hidden className="landing-float absolute right-[calc(100%+14px)] bottom-28 z-10 hidden whitespace-nowrap rounded-2xl bg-white/90 px-3.5 py-2.5 text-xs font-semibold shadow-[0_12px_30px_rgba(60,40,140,0.18)] backdrop-blur xl:block [animation-delay:1.2s]">
         💜 3 new bookings today
       </div>
@@ -227,6 +234,57 @@ export function ChatDemo() {
             </div>
           </article>
         )}
+        </div>
+        <Progress wins={wins} gain={gain} />
+      </div>
+    </div>
+  );
+}
+
+/** The booking goal ring and XP bar from the app's Home screen. */
+function Progress({ wins, gain }: { wins: number; gain: boolean }) {
+  const booked = BASE_BOOKED + wins;
+  const xp = BASE_XP + wins * 20;
+  const level = Math.floor(xp / 1000) + 1;
+  const into = xp % 1000;
+  const r = 34;
+  const circ = 2 * Math.PI * r;
+  const pct = Math.min(1, booked / GOAL);
+  return (
+    <div className="relative flex w-full flex-col gap-4 rounded-[20px] bg-card p-5 shadow-[0_20px_44px_rgba(60,40,140,0.14),inset_0_0_0_1px_rgba(26,24,48,0.06)]">
+      {gain && (
+        <span aria-hidden className="landing-bubble absolute -top-3 right-4 rounded-full bg-ok px-3 py-1 text-xs font-bold text-white shadow-[0_6px_16px_rgba(20,140,80,0.35)]">
+          +1 booking · +20 XP
+        </span>
+      )}
+      <div className="flex items-center gap-4">
+        <div className="relative size-[84px] shrink-0">
+          <svg width="84" height="84" viewBox="0 0 84 84" aria-hidden>
+            <circle cx="42" cy="42" r={r} fill="none" stroke="var(--color-track)" strokeWidth="9" />
+            <circle
+              cx="42" cy="42" r={r} fill="none" stroke="var(--color-brand)" strokeWidth="9" strokeLinecap="round"
+              strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} transform="rotate(-90 42 42)"
+              style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.2,0.7,0.2,1)" }}
+            />
+          </svg>
+          <span className="absolute inset-0 flex flex-col items-center justify-center">
+            <span className="font-display text-2xl font-bold leading-none tracking-tight">{booked}</span>
+            <span className="text-[10px] text-muted">of {GOAL}</span>
+          </span>
+        </div>
+        <div className="min-w-0">
+          <p className="label">Booked this month</p>
+          <p className="mt-1 font-display text-lg font-semibold leading-tight">{GOAL - booked} more to hit your goal</p>
+          <p className="mt-0.5 text-[13px] text-warn">🔥 6-day booking streak</p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap justify-between gap-2 text-[13px]">
+          <span className="font-semibold">Level {level} · {LEVELS[Math.min(level - 1, LEVELS.length - 1)]}</span>
+          <span className="text-muted">{into} / 1000 XP</span>
+        </div>
+        <div className="h-3 overflow-hidden rounded-full bg-track">
+          <div className="h-3 rounded-full bg-ok" style={{ width: `${into / 10}%`, transition: "width 0.8s cubic-bezier(0.2,0.7,0.2,1)" }} />
         </div>
       </div>
     </div>

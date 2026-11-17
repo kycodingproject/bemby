@@ -158,9 +158,10 @@ body {
   font: 500 14px/1 "Inter Variable", "Inter", system-ui, sans-serif; padding: 11px 16px; min-height: 44px; border-radius: 999px;
   border: 1px solid #c9c9d1; background: #fff; color: var(--qsph-ink); cursor: pointer; transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
-.qsph-tab:hover { border-color: #8e8e96; }
-.qsph-tab[aria-selected="true"] { background: var(--qsph-ink); border-color: var(--qsph-ink); color: #fff; }
-.qsph-tab:focus-visible { outline: 3px solid #1982fc; outline-offset: 2px; }
+.qsph-tab:hover { border-color: var(--color-brand); color: var(--color-brand-ink); }
+.qsph-tab[aria-selected="true"]:hover { color: #fff; }
+.qsph-tab[aria-selected="true"] { background: var(--color-brand); border-color: var(--color-brand); color: #fff; box-shadow: 0 6px 16px rgb(106 75 245 / 0.3); }
+.qsph-tab:focus-visible { outline: 3px solid var(--color-brand); outline-offset: 2px; }
 .qsph-stage { position: relative; isolation: isolate; width: 100%; height: 540px; margin: 0 auto; }
 .qsph-node { position: absolute; left: 0; top: 0; opacity: 0; will-change: transform, opacity; transition: filter 0.3s; }
 .qsph-stage.is-swapping .qsph-node { filter: blur(6px); opacity: 0 !important; transition: opacity 0.25s, filter 0.25s; }
