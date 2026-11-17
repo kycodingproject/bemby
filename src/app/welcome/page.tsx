@@ -101,7 +101,7 @@ export default function Welcome() {
       <section aria-labelledby="demo-h" className="relative z-10 mx-auto max-w-6xl px-4 pb-24 md:px-8">
         <Reveal className="mb-10 text-center">
           <p className="label">Watch it work</p>
-          <h2 id="demo-h" className="mt-3 font-display text-4xl font-bold tracking-tight">AI chats, and booking requests wait here.</h2>
+          <h2 id="demo-h" className="mt-3 font-display text-4xl font-bold tracking-tight">AI chats, and booking requests await your approval.</h2>
         </Reveal>
         <ChatDemo />
       </section>
