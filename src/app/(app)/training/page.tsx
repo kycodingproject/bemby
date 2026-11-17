@@ -2,6 +2,7 @@ import Link from "next/link";
 import { currentBusinessId, getRepo } from "@/lib/repo";
 import { ensureStarterQuestions } from "@/lib/training";
 import { TrainingList } from "@/components/TrainingList";
+import { PageHeader } from "@/components/icons";
 
 export const metadata = { title: "Training · Bemby" };
 
@@ -26,15 +27,14 @@ export default async function TrainingPage() {
   const pick = (q: (typeof all)[number]) => ({ id: q.id, question: q.question, answer: q.answer ?? "", fromChat: q.source === "from_chat" });
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <Link href="/" className="text-sm text-muted hover:text-ink">← Home</Link>
-          <h1 className="mt-1.5 font-display text-3xl font-bold tracking-tight">What {name} knows</h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-muted">
-            {name.charAt(0).toUpperCase() + name.slice(1)} uses these answers in every chat, along with your services, hours and policies. Edit anything, or add your own.
-          </p>
-        </div>
-      </header>
+      <div className="flex flex-col gap-3">
+        <Link href="/" className="text-sm font-semibold text-brand-ink hover:underline">← Home</Link>
+        <PageHeader
+          icon="training"
+          title={`What ${name} knows`}
+          sub={`${name.charAt(0).toUpperCase() + name.slice(1)} uses these answers in every chat, along with your services, hours and policies. Edit anything, or add your own.`}
+        />
+      </div>
       <TrainingList answered={answered.map(pick)} open={open.map(pick)} skipped={skipped.map(pick)} />
     </div>
   );

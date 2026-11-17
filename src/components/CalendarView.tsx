@@ -140,7 +140,7 @@ export function CalendarView(props: {
                   isSel ? "bg-brand-soft shadow-[inset_0_0_0_2px_var(--color-brand)]" : c.inMonth ? "bg-soft shadow-[inset_0_0_0_1px_rgba(26,24,48,0.05)] hover:bg-hover" : "bg-[#fafafd] text-[#77748f]"
                 } ${off ? "cal-off" : ""}`}
               >
-                <span className={`flex size-[26px] shrink-0 items-center justify-center rounded-full font-display text-[13px] font-semibold ${c.key === props.todayKey ? "bg-brand text-white" : ""}`}>{c.day}</span>
+                <span className={`flex size-[26px] shrink-0 items-center justify-center rounded-full font-display text-[13px] font-semibold ${c.key === props.todayKey ? "bg-gradient-to-br from-[#8c6bff] to-[#c04fc9] text-white shadow-[0_6px_12px_-4px_rgba(106,75,245,0.7)]" : ""}`}>{c.day}</span>
                 {cellBlocks.length > 0 && (
                   <span className="hidden truncate rounded-md bg-[#e9e7f1] px-1.5 py-0.5 text-[11px] font-semibold leading-tight text-ink-2 md:block">
                     {off ? "Off" : `Blocked${cellBlocks.length > 1 ? ` ×${cellBlocks.length}` : ""}`}
@@ -150,7 +150,7 @@ export function CalendarView(props: {
                   <span
                     key={x.id}
                     className={`hidden truncate rounded-md px-1.5 py-0.5 text-[11px] leading-tight md:block ${
-                      x.status === "requested" ? "bg-warn-chip text-warn shadow-[inset_0_0_0_1px_rgba(163,87,10,0.45)]" : x.bemby ? "bg-brand-chip text-brand-chip-ink" : "bg-[#f1eff8] text-ink-2"
+                      x.status === "requested" ? "bg-warn-chip text-warn shadow-[inset_0_0_0_1px_rgba(163,87,10,0.45)]" : x.bemby ? "bg-gradient-to-r from-[#e7e0ff] to-[#f7e1f1] text-brand-chip-ink" : "bg-[#f1eff8] text-ink-2"
                     }`}
                   >
                     {short(x.time)} {x.client.split(" ")[0]}
@@ -243,7 +243,7 @@ export function CalendarView(props: {
           ) : (
             <div key={a.id} className={`overflow-hidden rounded-2xl ${open === a.id ? "bg-[#f6f4ff] shadow-[inset_0_0_0_1px_rgba(106,75,245,0.4)]" : "bg-soft"}`}>
               <button type="button" aria-expanded={open === a.id} onClick={() => setOpen(open === a.id ? null : a.id)} className="flex min-h-16 w-full items-center gap-3.5 p-3.5 text-left hover:bg-hover">
-                <span className="w-1 self-stretch rounded" style={{ background: a.bemby ? "var(--color-brand)" : "var(--color-faint)" }} />
+                <span className="w-1 self-stretch rounded" style={{ background: a.bemby ? "linear-gradient(180deg, #8c6bff, #e05aa8)" : "var(--color-faint)" }} />
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="font-display text-[15px] font-semibold">{a.time} · {a.client}</span>
                   <span className="text-[13px] text-muted">{a.service} · {a.bemby ? "Booked by Bemby" : "Booked by you"}</span>

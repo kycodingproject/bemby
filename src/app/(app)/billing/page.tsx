@@ -3,6 +3,7 @@ import { billingEnabled, hasActivePlan } from "@/lib/billing";
 import { PLANS } from "@/lib/plans";
 import { currentBusinessId, getRepo, isDemo } from "@/lib/repo";
 import { startCheckout } from "./actions";
+import { PageHeader } from "@/components/icons";
 
 export const metadata = { title: "Choose your plan · Bemby" };
 
@@ -35,10 +36,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Turn Bemby on</h1>
-        <p className="mt-1.5 text-sm text-muted">Pick a plan to let Bemby start answering your clients. Cancel anytime.</p>
-      </header>
+      <PageHeader icon="billing" title="Turn Bemby on" sub="Pick a plan to let Bemby start answering your clients. Cancel anytime." />
       {canceled && <p className="rounded-2xl bg-warn-soft px-4 py-3 text-sm text-warn">Checkout was canceled. Pick a plan whenever you&apos;re ready.</p>}
       <div className="grid gap-6 md:grid-cols-2">
         {plans.map((p) => (

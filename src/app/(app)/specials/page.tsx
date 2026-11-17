@@ -1,5 +1,6 @@
 import { currentBusinessId, getRepo } from "@/lib/repo";
 import { SpecialBuilder } from "@/components/SpecialBuilder";
+import { PageHeader } from "@/components/icons";
 
 export default async function SpecialsPage() {
   const repo = getRepo();
@@ -10,10 +11,7 @@ export default async function SpecialsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Specials</h1>
-        <p className="mt-1.5 text-sm text-muted">Tell Bemby the deal. It writes the post, and mentions it to clients who message you.</p>
-      </header>
+      <PageHeader icon="specials" title="Specials" sub="Tell Bemby the deal. It writes the post, and mentions it to clients who message you." />
       <SpecialBuilder services={services.map((s) => ({ id: s.id, name: s.name }))} today={today} />
       {specials.length > 0 && (
         <section className="card p-6" aria-label="Your specials">

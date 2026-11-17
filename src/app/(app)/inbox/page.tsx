@@ -5,8 +5,18 @@ import { photoUrl } from "@/lib/media";
 import { Thread } from "@/components/Thread";
 import { TestBemby } from "@/components/TestBemby";
 import { AutoRefresh } from "@/components/AutoRefresh";
+import { PageHeader } from "@/components/icons";
 
 const CHANNEL = { sms: "Text", instagram: "Instagram", tiktok: "TikTok" } as const;
+
+/** Gradient avatar colors, picked from the client's name so each person keeps theirs. */
+const AVATARS = [
+  "linear-gradient(140deg, #8c6bff, #6a4bf5)",
+  "linear-gradient(140deg, #ff8fc7, #e05aa8)",
+  "linear-gradient(140deg, #6fd3ff, #4b7bf5)",
+  "linear-gradient(140deg, #ffc48a, #f07a4b)",
+  "linear-gradient(140deg, #5fe0b5, #1a9e86)",
+];
 
 export default async function InboxPage({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
   const repo = getRepo();
@@ -39,10 +49,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   return (
     <div className="flex flex-col gap-6">
       <AutoRefresh seconds={5} />
-      <header>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Inbox</h1>
-        <p className="mt-1.5 text-sm text-muted">Every text and DM in one place. Watch Bemby work, or jump in anytime.</p>
-      </header>
+      <PageHeader icon="inbox" title="Inbox" sub="Every DM and text in one place. Watch Bemby work, or jump in anytime." />
 
       <TestBemby businessName={business.name} canReset={isDemo()} />
 
@@ -58,7 +65,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
                 aria-current={on ? "true" : undefined}
                 className={`flex items-center gap-3 rounded-2xl p-3.5 ${on ? "bg-brand-soft shadow-[inset_0_0_0_1px_rgba(106,75,245,0.35)]" : "hover:bg-hover"}`}
               >
-                <span className="flex size-[42px] shrink-0 items-center justify-center rounded-full bg-track font-display text-[15px] font-semibold">{r.name[0]}</span>
+                <span className="flex size-[42px] shrink-0 items-center justify-center rounded-full font-display text-[15px] font-bold text-white shadow-[inset_0_-3px_6px_rgba(0,0,0,0.18),inset_0_1px_2px_rgba(255,255,255,0.4)]" style={{ background: AVATARS[(r.name.charCodeAt(0) + (r.name.charCodeAt(1) || 0)) % AVATARS.length] }}>{r.name[0]}</span>
                 <span className="min-w-0 flex-1">
                   <span className="flex justify-between gap-2">
                     <span className="truncate font-semibold">{r.name}</span>

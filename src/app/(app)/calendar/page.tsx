@@ -4,6 +4,7 @@ import { addDaysLocal, formatSlot, formatTime, localDateKey, zonedParts, zonedTi
 import { CalendarView, type CalAppt, type CalBlock, type CalBusy } from "@/components/CalendarView";
 import { externalBusy } from "@/lib/calendar/external";
 import Link from "next/link";
+import { PageHeader } from "@/components/icons";
 
 const CHANNEL = { sms: "text", instagram: "Instagram", tiktok: "TikTok" } as const;
 
@@ -103,12 +104,7 @@ export default async function CalendarPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Calendar</h1>
-          <p className="mt-1.5 text-sm text-muted">Tap a day to see it or block off time. Gold appointments are waiting for your OK.</p>
-        </div>
-      </header>
+      <PageHeader icon="calendar" title="Calendar" sub="Tap a day to see it or block off time. Gold appointments are waiting for your OK." />
       {ext.problems.length > 0 && (
         <p role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-warn-soft px-4 py-3 text-sm text-warn shadow-[inset_0_0_0_1px_rgba(163,87,10,0.25)]">
           <span>Bemby can&apos;t read your {ext.problems.map((p) => p.label).join(" and ")} right now, so those events aren&apos;t blocking times. {ext.problems[0].message}</span>

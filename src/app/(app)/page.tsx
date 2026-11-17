@@ -29,17 +29,30 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     d.byChannel.sms && `${d.byChannel.sms} by text`,
   ].filter(Boolean).join(" · ");
 
+  const heroLine =
+    d.pending > 0
+      ? `${d.pending} booking request${d.pending === 1 ? " is" : "s are"} waiting for your OK.`
+      : d.needsYou > 0
+        ? `${d.needsYou} chat${d.needsYou === 1 ? " needs" : "s need"} you. Everything else is handled.`
+        : d.business.paused
+          ? "Bemby is paused. Turn it back on in Settings when you're ready."
+          : `You're all caught up. ${d.bookedThisMonth} booked this month so far.`;
+
   return (
     <div className="flex flex-col gap-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm text-muted">{today}</p>
-          <h1 className="mt-1.5 font-display text-3xl font-bold tracking-tight">Hey, {d.business.owner_name}</h1>
-        </div>
-        <div className="flex items-center gap-2.5 rounded-full border border-line bg-card py-2 pl-2 pr-4 text-sm">
-          <span className="flex size-[30px] items-center justify-center rounded-full bg-brand-chip font-display text-[13px] font-bold text-brand-chip-ink">{d.level}</span>
-          <span className="font-semibold">{d.levelName}</span>
-          {d.streak > 0 && <span className="text-warn">{d.streak}-day streak</span>}
+      <header className="hero-band px-6 py-7 md:px-9 md:py-9">
+        <span aria-hidden className="orb pointer-events-none absolute -right-10 -top-12 hidden size-44 opacity-80 md:block" />
+        <div className="relative flex flex-wrap items-end justify-between gap-5">
+          <div className="max-w-xl">
+            <p className="text-sm font-medium text-white/75">{today}</p>
+            <h1 className="mt-1.5 font-display text-[34px] font-bold leading-tight tracking-[-0.03em] md:text-[42px]">Hey, {d.business.owner_name}</h1>
+            <p className="mt-2 text-[15px] leading-relaxed text-white/85">{heroLine}</p>
+          </div>
+          <div className="glass-chip flex items-center gap-2.5 rounded-full py-2 pl-2 pr-4 text-sm">
+            <span className="flex size-[32px] items-center justify-center rounded-full bg-white font-display text-[14px] font-bold text-brand-ink">{d.level}</span>
+            <span className="font-semibold">{d.levelName}</span>
+            {d.streak > 0 && <span className="font-semibold text-[#ffd9a8]">🔥 {d.streak}-day streak</span>}
+          </div>
         </div>
       </header>
 
@@ -69,10 +82,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <div className="relative size-[168px] shrink-0">
             <svg width="168" height="168" viewBox="0 0 168 168" aria-hidden="true">
               <circle cx="84" cy="84" r={r} fill="none" stroke="var(--color-track)" strokeWidth="14" />
-              <circle cx="84" cy="84" r={r} fill="none" stroke="var(--color-brand)" strokeWidth="14" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} transform="rotate(-90 84 84)" />
+              <defs>
+                <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#8c6bff" />
+                  <stop offset="55%" stopColor="#6a4bf5" />
+                  <stop offset="100%" stopColor="#e05aa8" />
+                </linearGradient>
+              </defs>
+              <circle cx="84" cy="84" r={r} fill="none" stroke="url(#ring)" strokeWidth="14" strokeLinecap="round" strokeDasharray={circ} strokeDashoffset={circ * (1 - pct)} transform="rotate(-90 84 84)" />
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="font-display text-[44px] font-bold tracking-tight">{d.bookedThisMonth}</span>
+              <span className="text-grad font-display text-[48px] font-bold tracking-tight">{d.bookedThisMonth}</span>
               <span className="text-xs text-muted">of {d.monthGoal} booked</span>
             </div>
           </div>
@@ -115,7 +135,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <span className="text-muted">{d.xpIntoLevel} / {d.xpPerLevel} XP · every booking = +20 XP, every answer = +{XP_PER_ANSWER} XP</span>
         </div>
         <div className="h-3 overflow-hidden rounded-full bg-track">
-          <div className="h-3 rounded-full bg-ok" style={{ width: `${(d.xpIntoLevel / d.xpPerLevel) * 100}%` }} />
+          <div className="h-3 rounded-full bg-gradient-to-r from-[#22c39a] to-[#0b7f65]" style={{ width: `${(d.xpIntoLevel / d.xpPerLevel) * 100}%` }} />
         </div>
         <ul className="mt-1.5 flex flex-wrap gap-2.5">
           {d.badges.map((b, i) => (
@@ -144,7 +164,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <span className="shrink-0 text-muted">{g.progress}/{g.target}</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-track">
-                <div className="h-2 rounded-full bg-brand" style={{ width: `${Math.min(100, (g.progress / g.target) * 100)}%` }} />
+                <div className="h-2 rounded-full bg-gradient-to-r from-[#8c6bff] via-brand to-rose" style={{ width: `${Math.min(100, (g.progress / g.target) * 100)}%` }} />
               </div>
               <p className="text-xs text-muted">+{g.reward_xp} XP when you hit it</p>
             </div>

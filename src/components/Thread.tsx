@@ -97,7 +97,7 @@ export function Thread(props: { conversation: Conversation; clientName: string; 
               ) : (
                 <p
                   className={`rounded-[18px] rounded-br-md px-4 py-3 text-sm leading-relaxed ${
-                    pending ? "border border-dashed border-warn bg-warn-soft" : isAi ? "bg-brand-chip" : "bg-brand text-white"
+                    pending ? "border border-dashed border-warn bg-warn-soft" : isAi ? "bg-gradient-to-br from-[#7d5cff] to-[#9b4fe0] text-white shadow-[0_8px_18px_-10px_rgba(106,75,245,0.8)]" : "bg-[#1a1830] text-white"
                   }`}
                 >
                   {m.body}

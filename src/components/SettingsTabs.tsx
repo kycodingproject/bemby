@@ -16,7 +16,7 @@ export function SettingsTabs({ active }: { active: SettingsTab }) {
   }, [active]);
   return (
     <nav ref={bar} aria-label="Settings sections" className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-      <ul className="flex w-max gap-1.5 rounded-2xl bg-card p-1.5 shadow-[inset_0_0_0_1px_rgba(26,24,48,0.08)]">
+      <ul className="side-glass flex w-max gap-1.5 rounded-2xl p-1.5 shadow-[0_10px_30px_-18px_rgba(76,50,180,0.4),inset_0_0_0_1px_rgba(255,255,255,0.9)]">
         {SETTINGS_TABS.map((t) => {
           const on = t.id === active;
           return (
@@ -26,7 +26,7 @@ export function SettingsTabs({ active }: { active: SettingsTab }) {
                 scroll={false}
                 aria-current={on ? "page" : undefined}
                 className={`flex min-h-10 items-center whitespace-nowrap rounded-xl px-4 text-sm font-semibold transition-colors ${
-                  on ? "bg-brand text-white shadow-[0_6px_16px_rgba(106,75,245,0.3)]" : "text-ink-2 hover:bg-hover hover:text-ink"
+                  on ? "nav-on" : "text-ink-2 hover:bg-white hover:text-ink"
                 }`}
               >
                 {t.label}

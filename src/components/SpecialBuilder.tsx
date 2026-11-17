@@ -59,10 +59,13 @@ export function SpecialBuilder({ services, today }: { services: { id: string; na
       <section aria-label="Bemby's draft" className="card flex min-w-0 flex-[1_1_340px] flex-col gap-4 p-6">
         <div className="flex items-center gap-2.5"><span className="orb size-[22px]" /><span className="font-display font-semibold">Bemby&apos;s draft</span></div>
         <div className="flex flex-wrap items-start gap-4">
-          <div className="flex h-[300px] w-[170px] shrink-0 flex-col justify-between rounded-[22px] bg-brand-soft p-[18px] shadow-[inset_0_0_0_1px_rgba(106,75,245,0.4),0_12px_28px_rgba(60,40,140,0.15)]">
-            <span className="text-[10px] uppercase tracking-[0.12em] text-brand-ink">Story preview</span>
-            <span className="font-display text-[22px] font-bold leading-tight">{deal} {serviceName.toLowerCase()}</span>
-            <span className="text-xs text-ink-2">{dates} · DM or text to book</span>
+          <div className="hero-band flex h-[300px] w-[170px] shrink-0 flex-col justify-between rounded-[22px] p-[18px]" aria-label="Story preview">
+            <span className="relative flex gap-1" aria-hidden>
+              <span className="h-[3px] flex-1 rounded-full bg-white/90" />
+              <span className="h-[3px] flex-1 rounded-full bg-white/35" />
+            </span>
+            <span className="relative font-display text-[24px] font-bold leading-[1.05] tracking-[-0.02em]">{deal} {serviceName.toLowerCase()}</span>
+            <span className="relative rounded-full bg-white px-3 py-1.5 text-center text-[11px] font-bold text-brand-ink">{dates} · DM to book</span>
           </div>
           <label className="min-w-48 flex-1">
             <span className="sr-only">Caption</span>

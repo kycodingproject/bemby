@@ -26,7 +26,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     return <SetupProblem message={(e as Error).message} />;
   }
   return (
-    <div className="flex min-h-dvh flex-col md:flex-row">
+    <div className="app-bg flex min-h-dvh flex-col md:flex-row">
       <Sidebar needsYou={needsYou} demo={isDemo()} businessName={businessName} />
       <main className="min-w-0 flex-1 px-4 pb-14 pt-6 md:px-10 md:pt-9">
         <div className="mx-auto max-w-[1180px]">

@@ -27,21 +27,27 @@
   --font-sans: "Inter Variable", system-ui, sans-serif;
   --font-display: "Sora Variable", "Inter Variable", system-ui, sans-serif;
   --radius-card: 22px;
-  --shadow-card: 0 1px 2px rgb(40 30 90 / 0.06), 0 12px 32px rgb(60 40 140 / 0.08);
+  --shadow-card: 0 1px 2px rgb(40 30 90 / 0.05), 0 18px 40px -12px rgb(76 50 180 / 0.18);
+  --color-orchid: #9a6bff;
+  --color-rose: #e05aa8;
 }
 
 body {
   background: var(--color-page);
+  -webkit-font-smoothing: antialiased;
   color: var(--color-ink);
   font-family: var(--font-sans);
 }
 
 @layer components {
+  /* Frosted glass: lets the purple/pink glow behind the app show through */
   .card {
-    background: var(--color-card);
-    border: 1px solid var(--color-line);
+    background: rgb(255 255 255 / 0.78);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    backdrop-filter: blur(18px) saturate(1.3);
+    border: 1px solid rgb(255 255 255 / 0.85);
     border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
+    box-shadow: var(--shadow-card), inset 0 0 0 1px rgb(106 75 245 / 0.06);
   }
   .btn {
     display: inline-flex;
@@ -54,13 +60,18 @@ body {
     font-weight: 600;
     font-size: 14px;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.15s, box-shadow 0.2s, transform 0.15s;
   }
+  .btn:active:not(:disabled) { transform: translateY(1px); }
   .btn:disabled { opacity: 0.55; cursor: default; }
-  .btn-primary { background: var(--color-brand); color: #fff; }
-  .btn-primary:hover:not(:disabled) { background: var(--color-brand-hover); }
-  .btn-ghost { background: #f1eff8; color: var(--color-ink); box-shadow: inset 0 0 0 1px rgb(26 24 48 / 0.1); }
-  .btn-ghost:hover:not(:disabled) { background: #e7e3f5; }
+  .btn-primary {
+    background: linear-gradient(135deg, #7d5cff 0%, var(--color-brand) 45%, #8a46e6 100%);
+    color: #fff;
+    box-shadow: 0 8px 20px -8px rgb(106 75 245 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.25);
+  }
+  .btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #6e4cff 0%, #5a3be6 45%, #7a36d9 100%); box-shadow: 0 10px 26px -8px rgb(106 75 245 / 0.85), inset 0 1px 0 rgb(255 255 255 / 0.25); }
+  .btn-ghost { background: rgb(255 255 255 / 0.7); color: var(--color-ink); box-shadow: inset 0 0 0 1px rgb(106 75 245 / 0.18); }
+  .btn-ghost:hover:not(:disabled) { background: #fff; box-shadow: inset 0 0 0 1px rgb(106 75 245 / 0.4); }
   .btn-warn { background: var(--color-warn-chip); color: #7a3f05; }
   .btn-warn:hover:not(:disabled) { background: #ffddb5; }
   .input {
@@ -68,16 +79,27 @@ body {
     padding: 0 14px;
     border-radius: 12px;
     border: 1px solid rgb(26 24 48 / 0.12);
-    background: var(--color-soft);
+    background: rgb(255 255 255 / 0.75);
     color: var(--color-ink);
     font-size: 14px;
     width: 100%;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
+  .input:hover { border-color: rgb(106 75 245 / 0.3); }
   .input:focus { outline: 2px solid var(--color-brand); outline-offset: 1px; }
   .orb {
     border-radius: 9999px;
     background: radial-gradient(circle at 32% 28%, #fff 0%, #d4ccff 10%, #6a4bf5 42%, #3a2d9c 78%, #160f45 100%);
     box-shadow: 0 0 24px rgb(106 75 245 / 0.4), inset -6px -8px 16px rgb(10 6 40 / 0.5);
+  }
+  /* Glossy gradient tile behind page and card icons */
+  .icon-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: radial-gradient(120% 90% at 25% 15%, rgb(255 255 255 / 0.45), transparent 45%), linear-gradient(140deg, #8c6bff 0%, var(--color-brand) 45%, var(--color-rose) 110%);
+    box-shadow: 0 12px 24px -10px rgb(106 75 245 / 0.7), inset 0 -3px 8px rgb(40 20 120 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.5);
   }
   .label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-muted); }
 }
@@ -197,3 +219,73 @@ body {
 
 /* Blocked-off time on the calendar: soft diagonal stripes */
 .cal-off { background-image: repeating-linear-gradient(135deg, rgb(26 24 48 / 0.06) 0 6px, transparent 6px 12px); }
+
+/* ---------- App background: soft aurora of the brand colors ---------- */
+.app-bg {
+  position: relative;
+  isolation: isolate;
+  background: var(--color-page);
+}
+.app-bg::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(48rem 34rem at 92% -6%, rgb(154 107 255 / 0.30), transparent 62%),
+    radial-gradient(40rem 30rem at 18% 0%, rgb(106 75 245 / 0.14), transparent 60%),
+    radial-gradient(44rem 34rem at 4% 96%, rgb(224 90 168 / 0.16), transparent 62%),
+    radial-gradient(36rem 28rem at 78% 88%, rgb(124 196 255 / 0.14), transparent 60%),
+    linear-gradient(180deg, #f8f6ff 0%, #f4f1fc 100%);
+}
+.app-bg::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(rgb(106 75 245 / 0.12) 1px, transparent 1px);
+  background-size: 26px 26px;
+  mask-image: linear-gradient(180deg, #000 0%, transparent 55%);
+}
+
+/* Sidebar: frosted panel; the current page lights up in the brand gradient */
+.side-glass {
+  background: rgb(255 255 255 / 0.62);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(20px) saturate(1.3);
+}
+.nav-on {
+  color: #fff;
+  background: linear-gradient(120deg, #7d5cff 0%, var(--color-brand) 50%, #b04fd8 100%);
+  box-shadow: 0 10px 22px -10px rgb(106 75 245 / 0.8), inset 0 1px 0 rgb(255 255 255 / 0.3);
+}
+
+/* Home welcome banner */
+.hero-band {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  border-radius: 28px;
+  background:
+    radial-gradient(30rem 18rem at 100% 0%, rgb(255 255 255 / 0.22), transparent 60%),
+    radial-gradient(26rem 20rem at 0% 100%, rgb(224 90 168 / 0.55), transparent 65%),
+    linear-gradient(125deg, #5b3fe0 0%, #6a4bf5 35%, #8b5cf6 65%, #c04fc9 100%);
+  box-shadow: 0 30px 60px -28px rgb(76 50 200 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+.hero-band::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgb(255 255 255 / 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(90deg, transparent 30%, #000 100%);
+}
+.glass-chip {
+  background: rgb(255 255 255 / 0.16);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.3);
+}

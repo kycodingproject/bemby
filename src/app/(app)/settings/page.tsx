@@ -16,6 +16,7 @@ import { openBillingPortal } from "../billing/actions";
 import { DeleteAccount } from "@/components/DeleteAccount";
 import { SettingsTabs } from "@/components/SettingsTabs";
 import { SETTINGS_TABS, type SettingsTab } from "@/lib/settings-tabs";
+import { PageHeader } from "@/components/icons";
 
 // Reading a price-list photo with the AI can take ~30 seconds.
 export const maxDuration = 60;
@@ -36,10 +37,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="flex flex-col gap-6">
-      <header>
-        <h1 className="font-display text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="mt-1.5 text-sm text-muted">Your services, hours, and how much Bemby does on its own.</p>
-      </header>
+      <PageHeader icon="settings" title="Settings" sub="Your business, services, hours, and how much Bemby does on its own." />
 
       <SettingsTabs active={tab} />
 
