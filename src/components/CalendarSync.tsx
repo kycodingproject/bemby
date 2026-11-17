@@ -109,6 +109,14 @@ export function CalendarSync(props: { demo: boolean; feeds: FeedStatus[]; allDay
           <p className="mt-2 text-muted">On a Mac: Calendar app → right-click the calendar → Share Calendar → Public Calendar. Anyone with the link can view that calendar, so only share it here.</p>
         </details>
 
+        <details className={help}>
+          <summary className={sum}>Use Vagaro? Here&apos;s how to block your Vagaro appointments</summary>
+          <ol className="mt-2 list-decimal space-y-1 pl-5">
+            <li>In Vagaro on a computer, turn on <strong>Google Calendar sync</strong> (Vagaro&apos;s settings, under your calendar or profile). Vagaro then copies your appointments into your Google Calendar.</li>
+            <li>Copy that Google Calendar&apos;s <strong>Secret address in iCal format</strong> (steps above) and paste it here.</li>
+          </ol>
+          <p className="mt-2 text-muted">Now anything booked in Vagaro also blocks those times in Bemby, so clients can&apos;t be double-booked across the two.</p>
+        </details>
         <label className="flex items-start gap-2.5 text-sm">
           <input type="checkbox" className="mt-1 size-4 accent-[var(--color-brand)]" checked={props.allDayBlocks} disabled={busy || props.demo} onChange={(e) => start(() => setAllDayBlocks(e.target.checked))} />
           <span>

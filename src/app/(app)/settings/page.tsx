@@ -77,7 +77,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           <div className="flex flex-wrap items-center justify-between gap-3 py-3.5">
             <div>
               <p className="text-sm font-semibold">Vagaro</p>
-              <p className="mt-0.5 text-[13px] text-muted">Sync appointments, clients and open times</p>
+              <p className="mt-0.5 text-[13px] text-muted">Vagaro appointments can already block times through Google Calendar (see Calendar sync). A direct connection is coming.</p>
             </div>
             <span className="text-[13px] text-muted">After launch</span>
           </div>
