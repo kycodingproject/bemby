@@ -401,3 +401,58 @@ export async function newCalendarLink() {
   refresh();
   return { ok: true };
 }
+
+// ---------- Train your receptionist ----------
+
+async function ownedTraining(id: string) {
+  const { repo, business } = await ownedBusiness();
+  const q = (await repo.listTraining(business.id)).find((x) => x.id === id);
+  if (!q) throw new Error("Question not found.");
+  return { repo, business, q };
+}
+
+/** The owner answered a question: the receptionist uses it from now on. */
+export async function answerTraining(id: string, answer: string) {
+  const text = String(answer).trim().slice(0, 1000);
+  if (text.length < 2) return { error: "Type an answer first." };
+  const { repo, q } = await ownedTraining(id);
+  await repo.updateTraining(q.id, { answer: text, status: "answered", answered_at: q.answered_at ?? new Date().toISOString() });
+  refresh();
+  return { ok: true };
+}
+
+/** "Doesn't apply to me": skip it (counts as done, nothing is taught). */
+export async function skipTraining(id: string) {
+  const { repo, q } = await ownedTraining(id);
+  await repo.updateTraining(q.id, { status: "skipped", answered_at: new Date().toISOString() });
+  refresh();
+}
+
+/** Bring a skipped or answered question back to edit it. */
+export async function reopenTraining(id: string) {
+  const { repo, q } = await ownedTraining(id);
+  await repo.updateTraining(q.id, { status: "open", answered_at: null });
+  refresh();
+}
+
+export async function deleteTraining(id: string) {
+  const { repo, q } = await ownedTraining(id);
+  await repo.deleteTraining(q.id);
+  refresh();
+}
+
+/** The owner adds their own fact for the receptionist to know. */
+export async function addOwnTraining(question: string, answer: string) {
+  const { repo, business } = await ownedBusiness();
+  const qText = String(question).trim().slice(0, 200);
+  const aText = String(answer).trim().slice(0, 1000);
+  if (qText.length < 4 || aText.length < 2) return { error: "Add a question and an answer." };
+  try {
+    const row = await repo.addTraining({ business_id: business.id, question: qText, source: "starter", conversation_id: null, sort: 999 });
+    await repo.updateTraining(row.id, { answer: aText, status: "answered", answered_at: new Date().toISOString() });
+  } catch (e) {
+    return { error: /duplicate/i.test((e as Error).message) ? "That question is already on your list." : (e as Error).message };
+  }
+  refresh();
+  return { ok: true };
+}

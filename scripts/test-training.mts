@@ -1,0 +1,27 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- test fixtures */
+import { MemoryRepo } from "../src/lib/repo/memory";
+import { seedDemo } from "../src/lib/repo/seed";
+import { ensureStarterQuestions, trainingToday, knowledgeText, learnFromChat, DAILY_TASKS } from "../src/lib/training";
+import { buildSystemPrompt } from "../src/lib/ai/prompt";
+const ok = (n: string, c: boolean) => console.log(c ? "ok  " : "BAD ", n);
+const repo = new MemoryRepo(seedDemo(new Date()));
+const b = repo.db.businesses[0];
+const all = await ensureStarterQuestions(repo, b);
+ok("starter bank created for a hair business", all.length > 10 && all.some((q) => /clean or dirty hair/.test(q.question)));
+ok("not duplicated on second visit", (await ensureStarterQuestions(repo, b)).length === all.length);
+let t = trainingToday(all, b);
+ok(`shows ${DAILY_TASKS} tasks to start`, t.tasks.length === DAILY_TASKS && t.answeredToday === 0);
+for (const q of t.tasks) await repo.updateTraining(q.id, { answer: "Yes, street parking out front.", status: "answered", answered_at: new Date().toISOString() });
+t = trainingToday(await repo.listTraining(b.id), b);
+ok("after 3 answers: done for today", t.tasks.length === 0 && t.doneForToday && t.answeredToday === 3);
+ok("progress moved", t.progress > 0 && t.progress < 1);
+await learnFromChat(repo, b.id, repo.db.conversations[0].id, "Do you do bridal trials");
+await learnFromChat(repo, b.id, repo.db.conversations[0].id, "do you do bridal trials?");
+t = trainingToday(await repo.listTraining(b.id), b);
+ok("question from a chat shows even after the daily limit", t.tasks.length === 1 && t.tasks[0].source === "from_chat" && t.tasks[0].question === "Do you do bridal trials?");
+ok("same chat question isn't added twice", (await repo.listTraining(b.id)).filter((q) => /bridal/i.test(q.question)).length === 1);
+const k = knowledgeText(await repo.listTraining(b.id));
+ok("answers become knowledge", (k.match(/A: Yes, street parking/g) ?? []).length === 3 && !/bridal/.test(k));
+const prompt = buildSystemPrompt({ business: b, services: repo.db.services, specials: [], client: repo.db.clients[0], conversation: repo.db.conversations[0], pastVisits: 0, upcoming: [], now: new Date(), knowledge: k } as any);
+ok("knowledge is in the AI's instructions", prompt.includes("answers to common questions") && prompt.includes("A: Yes, street parking"));
+ok("AI told to send unknown questions to the owner", prompt.includes("owner_question"));

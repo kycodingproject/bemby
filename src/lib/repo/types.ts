@@ -1,4 +1,4 @@
-import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special } from "../types";
+import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special , TrainingQuestion } from "../types";
 
 /** Everything Bemby reads and writes. Two implementations: Supabase (real) and in-memory (demo). */
 export interface Repo {
@@ -41,6 +41,10 @@ export interface Repo {
   updateAppointment(id: string, patch: Partial<Appointment>): Promise<Appointment>;
 
   // goals
+  listTraining(businessId: string): Promise<TrainingQuestion[]>;
+  addTraining(q: Pick<TrainingQuestion, "business_id" | "question" | "source" | "conversation_id" | "sort">): Promise<TrainingQuestion>;
+  updateTraining(id: string, patch: Partial<Pick<TrainingQuestion, "answer" | "status" | "answered_at" | "source" | "conversation_id" | "question">>): Promise<TrainingQuestion>;
+  deleteTraining(id: string): Promise<void>;
   listGoals(businessId: string): Promise<Goal[]>;
   createGoal(g: Omit<Goal, "id">): Promise<Goal>;
 }

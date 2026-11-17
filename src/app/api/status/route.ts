@@ -38,6 +38,8 @@ export async function GET() {
       status.migration_0005 = m5.error ? "NOT RUN (run 0005_trigger_words.sql)" : "done";
       const m6 = await sb.from("businesses").select("assistant_name").limit(1);
       status.migration_0006 = m6.error ? "NOT RUN (run 0006_receptionist.sql)" : "done";
+      const m9 = await sb.from("training_questions").select("id").limit(1);
+      status.migration_0009 = m9.error ? "NOT RUN (run 0009_training.sql)" : "done";
       const m8 = await sb.from("businesses").select("calendar_feeds").limit(1);
       status.migration_0008 = m8.error ? "NOT RUN (run 0008_calendar_sync.sql)" : "done";
       const m7 = await sb.from("businesses").select("tiktok_account_id").limit(1);

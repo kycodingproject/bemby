@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special } from "../types";
+import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special , TrainingQuestion } from "../types";
 import type { Repo } from "./types";
 
 function must<T>(res: { data: T | null; error: { message: string } | null }): T {
@@ -120,6 +120,18 @@ export class SupabaseRepo implements Repo {
     return must(await this.sb.from("appointments").update(patch).eq("id", id).select().single()) as Appointment;
   }
 
+  async listTraining(businessId: string) {
+    return must(await this.sb.from("training_questions").select("*").eq("business_id", businessId).order("created_at")) as TrainingQuestion[];
+  }
+  async addTraining(q: Pick<TrainingQuestion, "business_id" | "question" | "source" | "conversation_id" | "sort">) {
+    return must(await this.sb.from("training_questions").insert(q).select().single()) as TrainingQuestion;
+  }
+  async updateTraining(id: string, patch: Partial<TrainingQuestion>) {
+    return must(await this.sb.from("training_questions").update(patch).eq("id", id).select().single()) as TrainingQuestion;
+  }
+  async deleteTraining(id: string) {
+    must(await this.sb.from("training_questions").delete().eq("id", id).select());
+  }
   async listGoals(businessId: string) {
     return must(await this.sb.from("goals").select("*").eq("business_id", businessId).order("created_at")) as Goal[];
   }

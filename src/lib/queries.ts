@@ -2,6 +2,7 @@ import "server-only";
 import type { Repo } from "./repo/types";
 import type { Appointment, Business, Goal } from "./types";
 import { localDateKey, zonedParts, zonedTimeToUtc } from "./time";
+import { XP_PER_ANSWER } from "./training";
 
 const XP_PER_BOOKING = 20;
 const XP_PER_LEVEL = 1000;
@@ -43,7 +44,8 @@ export async function homeData(repo: Repo, businessId: string, now = new Date())
   const goals = await repo.listGoals(businessId);
   const monthGoal = goals.find((g) => g.metric === "ai_bookings")?.target ?? 30;
 
-  const xp = aiConfirmed.length * XP_PER_BOOKING;
+  const trained = (await repo.listTraining(businessId).catch(() => [])).filter((q) => q.status === "answered").length;
+  const xp = aiConfirmed.length * XP_PER_BOOKING + trained * XP_PER_ANSWER;
   const level = Math.floor(xp / XP_PER_LEVEL) + 1;
 
   // Streak: consecutive days (ending today or yesterday) that had at least one Bemby booking on the calendar.

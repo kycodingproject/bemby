@@ -1,4 +1,4 @@
-import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special } from "../types";
+import type { Appointment, Business, Channel, Client, Conversation, Goal, Message, Service, Special, TrainingQuestion } from "../types";
 import type { Repo } from "./types";
 import { seedDemo } from "./seed";
 
@@ -11,6 +11,7 @@ export interface MemoryDb {
   appointments: Appointment[];
   goals: Goal[];
   specials: Special[];
+  training?: TrainingQuestion[];
 }
 
 const uid = () => crypto.randomUUID();
@@ -100,6 +101,16 @@ export class MemoryRepo implements Repo {
   }
   async updateAppointment(id: string, patch: Partial<Appointment>) { return patchRow(this.db.appointments, id, patch); }
 
+  async listTraining(businessId: string) { return (this.db.training ??= []).filter((q) => q.business_id === businessId); }
+  async addTraining(q: Pick<TrainingQuestion, "business_id" | "question" | "source" | "conversation_id" | "sort">) {
+    const list = (this.db.training ??= []);
+    if (list.some((x) => x.business_id === q.business_id && x.question.toLowerCase() === q.question.toLowerCase())) throw new Error("duplicate key");
+    const row: TrainingQuestion = { ...q, id: uid(), answer: null, status: "open", created_at: now(), answered_at: null };
+    list.push(row);
+    return row;
+  }
+  async updateTraining(id: string, patch: Partial<TrainingQuestion>) { return patchRow(this.db.training ??= [], id, patch); }
+  async deleteTraining(id: string) { this.db.training = (this.db.training ?? []).filter((q) => q.id !== id); }
   async listGoals(businessId: string) { return this.db.goals.filter((g) => g.business_id === businessId); }
   async createGoal(g: Omit<Goal, "id">) { const row = { ...g, id: uid() }; this.db.goals.push(row); return row; }
 }

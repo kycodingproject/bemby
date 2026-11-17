@@ -2,11 +2,21 @@ import Link from "next/link";
 import { currentBusinessId, getRepo, isDemo } from "@/lib/repo";
 import { homeData } from "@/lib/queries";
 import { GoalAdder } from "@/components/GoalAdder";
+import { TrainingCard } from "@/components/TrainingCard";
+import { DAILY_TASKS, ensureStarterQuestions, trainingToday, XP_PER_ANSWER } from "@/lib/training";
 
 const BADGE_COLORS = ["#6a4bf5", "#0b7f65", "#a3570a", "#c2185b"];
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
-  const d = await homeData(getRepo(), await currentBusinessId());
+  const repo = getRepo();
+  const d = await homeData(repo, await currentBusinessId());
+  // Daily training questions (hidden until the training table exists: migration 0009).
+  const training = await ensureStarterQuestions(repo, d.business)
+    .then((all) => trainingToday(all, d.business))
+    .catch((e) => {
+      console.error("training unavailable", (e as Error).message);
+      return null;
+    });
   const welcome = (await searchParams).welcome === "1";
   const r = 70;
   const circ = 2 * Math.PI * r;
@@ -99,10 +109,24 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </section>
       </div>
 
+      {training && (
+        <TrainingCard
+          assistant={d.business.assistant_name?.trim() || "your receptionist"}
+          tasks={training.tasks.map((t) => ({ id: t.id, question: t.question, fromChat: t.source === "from_chat", conversationId: t.conversation_id }))}
+          answeredToday={training.answeredToday}
+          daily={DAILY_TASKS}
+          doneForToday={training.doneForToday}
+          allStartersDone={training.allStartersDone}
+          progress={training.progress}
+          answered={training.answered}
+          xpPerAnswer={XP_PER_ANSWER}
+        />
+      )}
+
       <section className="card flex flex-col gap-3 px-6 py-5">
         <div className="flex flex-wrap justify-between gap-2 text-sm">
           <span className="font-semibold">Level {d.level} · {d.levelName}</span>
-          <span className="text-muted">{d.xpIntoLevel} / {d.xpPerLevel} XP · every booking = +20 XP</span>
+          <span className="text-muted">{d.xpIntoLevel} / {d.xpPerLevel} XP · every booking = +20 XP, every answer = +{XP_PER_ANSWER} XP</span>
         </div>
         <div className="h-3 overflow-hidden rounded-full bg-track">
           <div className="h-3 rounded-full bg-ok" style={{ width: `${(d.xpIntoLevel / d.xpPerLevel) * 100}%` }} />

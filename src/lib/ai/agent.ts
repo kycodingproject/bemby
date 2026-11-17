@@ -3,6 +3,7 @@ import type { Appointment, MediaRef, Message } from "../types";
 import type { Repo } from "../repo/types";
 import { findOpenSlots, isSlotOpen } from "../scheduling";
 import { externalBusy } from "../calendar/external";
+import { knowledgeText, learnFromChat } from "../training";
 import { formatSlot, localDateKey, zonedParts, zonedTimeToUtc } from "../time";
 import { buildSystemPrompt } from "./prompt";
 
@@ -74,14 +75,25 @@ const TOOLS: Anthropic.Tool[] = [
     description: "Mark a situation the owner may want to review (discount request, off-menu service, upset client, other).",
     input_schema: {
       type: "object",
-      properties: { situation: { type: "string", enum: ["discount", "off_menu", "upset", "other"] }, summary: { type: "string" } },
+      properties: {
+        situation: { type: "string", enum: ["discount", "off_menu", "upset", "other"] },
+        summary: { type: "string" },
+        owner_question: { type: "string", description: "If the owner's answer to a general question would help you next time (e.g. 'Do you do kids' cuts?'), write it here. Leave out otherwise." },
+      },
       required: ["situation", "summary"],
     },
   },
   {
     name: "hand_off_to_owner",
     description: "Stop replying in this conversation and alert the owner to take over. Your final message should tell the client the owner will follow up.",
-    input_schema: { type: "object", properties: { reason: { type: "string" } }, required: ["reason"] },
+    input_schema: {
+      type: "object",
+      properties: {
+        reason: { type: "string" },
+        owner_question: { type: "string", description: "If you're handing off because you didn't know a fact about the business, that question written for the owner, e.g. 'Do you take walk-ins?'. Leave out otherwise." },
+      },
+      required: ["reason"],
+    },
   },
 ];
 
@@ -139,7 +151,8 @@ export async function runBemby(opts: {
   }
   if (turns[0]?.role === "assistant") turns.unshift({ role: "user", content: "(conversation started)" });
 
-  const system = buildSystemPrompt({ business, services, specials, client, conversation, pastVisits, upcoming, now });
+  const knowledge = knowledgeText(await repo.listTraining(business.id).catch(() => []));
+  const system = buildSystemPrompt({ business, services, specials, client, conversation, pastVisits, upcoming, now, knowledge });
   const anthropic = opts.anthropic ?? new Anthropic();
   const flags = new Set<string>();
   let appointment: Appointment | null = null;
@@ -223,9 +236,11 @@ export async function runBemby(opts: {
       }
       case "flag_for_owner":
         flags.add(String(input.situation));
+        if (typeof input.owner_question === "string") await learnFromChat(repo, business!.id, conversation!.id, input.owner_question).catch(() => null);
         return "Flagged for the owner.";
       case "hand_off_to_owner":
         handedOff = true;
+        if (typeof input.owner_question === "string") await learnFromChat(repo, business!.id, conversation!.id, input.owner_question).catch(() => null);
         await repo.updateConversation(conversation!.id, { mode: "needs_owner" });
         return "The owner has been alerted. Write one short final message telling the client the owner will follow up.";
       default:

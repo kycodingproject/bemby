@@ -163,3 +163,17 @@ export interface Special {
   mention_in_chats: boolean;
   caption: string;
 }
+
+/** A question for the owner; their answer teaches the receptionist. */
+export interface TrainingQuestion {
+  id: string;
+  business_id: string;
+  question: string;
+  answer: string | null;
+  source: "starter" | "from_chat";
+  conversation_id: string | null;
+  status: "open" | "answered" | "skipped";
+  sort: number;
+  created_at: string;
+  answered_at: string | null;
+}
