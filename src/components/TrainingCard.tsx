@@ -26,10 +26,18 @@ export function TrainingCard(props: {
   const pct = Math.round(props.progress * 100);
   const ready = props.allStartersDone;
   return (
-    <section aria-labelledby="train-h" className="card flex flex-col gap-4 p-6">
+    <section aria-labelledby="train-h" className={`card flex flex-col gap-4 p-6 ${props.tasks.length ? "bg-[#fff6ea] shadow-[inset_0_0_0_2px_rgba(234,128,30,0.55),0_14px_34px_-14px_rgba(234,128,30,0.45)]" : ""}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="label">Daily tasks</p>
+          <p className="flex items-center gap-2">
+            <span className="label">Daily tasks</span>
+            {props.tasks.length > 0 && (
+              <span className="flex items-center gap-1.5 rounded-full bg-[#ea801e] px-2.5 py-0.5 text-xs font-bold text-white">
+                <span className="landing-ping size-1.5 rounded-full bg-white" aria-hidden />
+                {props.tasks.length} to do
+              </span>
+            )}
+          </p>
           <h2 id="train-h" className="mt-1 font-display text-xl font-semibold">Train {props.assistant} for better replies</h2>
           <p className="mt-1 text-sm text-muted">
             Answer what clients often ask. {props.assistant} uses your answers in every chat. +{props.xpPerAnswer} XP each.
@@ -46,7 +54,7 @@ export function TrainingCard(props: {
           </span>
         </div>
         <div className="h-2.5 overflow-hidden rounded-full bg-track">
-          <div className="h-2.5 rounded-full bg-brand transition-[width] duration-700" style={{ width: `${pct}%` }} />
+          <div className={`h-2.5 rounded-full transition-[width] duration-700 ${props.tasks.length ? "bg-[#ea801e]" : "bg-brand"}`} style={{ width: `${pct}%` }} />
         </div>
       </div>
 
@@ -71,9 +79,9 @@ function Task({ task }: { task: TrainingTask }) {
   const [busy, start] = useTransition();
   const id = `ans-${task.id}`;
   return (
-    <li className={`flex flex-col gap-2.5 rounded-2xl p-4 ${task.fromChat ? "bg-warn-soft shadow-[inset_0_0_0_1px_rgba(163,87,10,0.25)]" : "bg-soft"}`}>
+    <li className={`flex flex-col gap-2.5 rounded-2xl bg-card p-4 ${task.fromChat ? "shadow-[inset_0_0_0_2px_rgba(234,128,30,0.6)]" : "shadow-[inset_0_0_0_1px_rgba(234,128,30,0.25)]"}`}>
       {task.fromChat && (
-        <p className="flex flex-wrap items-center gap-2 text-xs font-semibold text-warn">
+        <p className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#b25a06]">
           A client asked this and your receptionist didn&apos;t know
           {task.conversationId && <Link href={`/inbox?c=${task.conversationId}`} className="underline">See chat</Link>}
         </p>
@@ -92,7 +100,7 @@ function Task({ task }: { task: TrainingTask }) {
       >
         <textarea
           id={id}
-          className="input min-h-20 bg-card py-2.5 leading-relaxed"
+          className="input min-h-20 bg-soft py-2.5 leading-relaxed"
           value={answer}
           maxLength={1000}
           onChange={(e) => setAnswer(e.target.value)}
@@ -100,7 +108,7 @@ function Task({ task }: { task: TrainingTask }) {
         />
         {error && <p role="alert" className="text-sm text-danger">{error}</p>}
         <div className="flex flex-wrap gap-2">
-          <button className="btn btn-primary" disabled={busy || answer.trim().length < 2}>{busy ? "Saving…" : "Save answer"}</button>
+          <button className="btn bg-[#ea801e] text-white hover:bg-[#d6700f] disabled:opacity-50" disabled={busy || answer.trim().length < 2}>{busy ? "Saving…" : "Save answer"}</button>
           <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => start(() => skipTraining(task.id))}>Doesn&apos;t apply to me</button>
         </div>
       </form>

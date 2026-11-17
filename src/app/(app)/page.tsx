@@ -109,20 +109,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </section>
       </div>
 
-      {training && (
-        <TrainingCard
-          assistant={d.business.assistant_name?.trim() || "your receptionist"}
-          tasks={training.tasks.map((t) => ({ id: t.id, question: t.question, fromChat: t.source === "from_chat", conversationId: t.conversation_id }))}
-          answeredToday={training.answeredToday}
-          daily={DAILY_TASKS}
-          doneForToday={training.doneForToday}
-          allStartersDone={training.allStartersDone}
-          progress={training.progress}
-          answered={training.answered}
-          xpPerAnswer={XP_PER_ANSWER}
-        />
-      )}
-
       <section className="card flex flex-col gap-3 px-6 py-5">
         <div className="flex flex-wrap justify-between gap-2 text-sm">
           <span className="font-semibold">Level {d.level} · {d.levelName}</span>
@@ -166,6 +152,20 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           {d.goals.length === 0 && <p className="text-sm text-muted">No goals yet. Add one to start tracking.</p>}
         </div>
       </section>
+
+      {training && (
+        <TrainingCard
+          assistant={d.business.assistant_name?.trim() || "your receptionist"}
+          tasks={training.tasks.map((t) => ({ id: t.id, question: t.question, fromChat: t.source === "from_chat", conversationId: t.conversation_id }))}
+          answeredToday={training.answeredToday}
+          daily={DAILY_TASKS}
+          doneForToday={training.doneForToday}
+          allStartersDone={training.allStartersDone}
+          progress={training.progress}
+          answered={training.answered}
+          xpPerAnswer={XP_PER_ANSWER}
+        />
+      )}
     </div>
   );
 }
