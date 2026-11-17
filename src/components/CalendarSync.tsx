@@ -110,12 +110,24 @@ export function CalendarSync(props: { demo: boolean; feeds: FeedStatus[]; allDay
         </details>
 
         <details className={help}>
-          <summary className={sum}>Use Vagaro? Here&apos;s how to block your Vagaro appointments</summary>
-          <ol className="mt-2 list-decimal space-y-1 pl-5">
-            <li>In Vagaro on a computer, turn on <strong>Google Calendar sync</strong> (Vagaro&apos;s settings, under your calendar or profile). Vagaro then copies your appointments into your Google Calendar.</li>
-            <li>Copy that Google Calendar&apos;s <strong>Secret address in iCal format</strong> (steps above) and paste it here.</li>
+          <summary className={sum}>Use Vagaro? Block your Vagaro appointments too</summary>
+          <p className="mt-2 font-semibold">Step 1: Sync Vagaro to your Google Calendar</p>
+          <ol className="mt-1 list-decimal space-y-1 pl-5">
+            <li>Log in to <strong>vagaro.com</strong> on a computer (as the owner or a manager).</li>
+            <li>Go to <strong>Settings</strong> → <strong>Employees</strong> → <strong>Employee Profiles</strong>.</li>
+            <li>Find your own profile, open its <strong>action menu</strong> (the dots), and choose <strong>Integrations</strong>.</li>
+            <li>Choose <strong>Sync Google Calendar</strong> and sign in with the same Google account you use for your calendar. Allow the permissions it asks for.</li>
+            <li>Make sure <strong>Vagaro events</strong> is turned on, so your Vagaro appointments are copied to Google.</li>
+            <li>Click <strong>Connect Calendar</strong>. Within a few minutes your Vagaro appointments show up in Google Calendar.</li>
           </ol>
-          <p className="mt-2 text-muted">Now anything booked in Vagaro also blocks those times in Bemby, so clients can&apos;t be double-booked across the two.</p>
+          <p className="mt-3 font-semibold">Step 2: Link that Google Calendar here</p>
+          <ol className="mt-1 list-decimal space-y-1 pl-5">
+            <li>Follow &ldquo;Where do I find my Google Calendar link?&rdquo; above for the calendar your Vagaro appointments appear in.</li>
+            <li>Paste its secret address in the box above and tap <strong>Link calendar</strong>.</li>
+          </ol>
+          <p className="mt-2 text-muted">
+            Now anything booked in Vagaro also blocks that time in Bemby, so clients can&apos;t be double-booked across the two. If a stylist on your team takes the bookings, they&apos;d sync their own Vagaro profile the same way. Vagaro sometimes renames its menus; if a step looks different, search &ldquo;Google Calendar&rdquo; in Vagaro&apos;s help center.
+          </p>
         </details>
         <label className="flex items-start gap-2.5 text-sm">
           <input type="checkbox" className="mt-1 size-4 accent-[var(--color-brand)]" checked={props.allDayBlocks} disabled={busy || props.demo} onChange={(e) => start(() => setAllDayBlocks(e.target.checked))} />
