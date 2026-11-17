@@ -29,8 +29,8 @@ export class MemoryRepo implements Repo {
 
   async getBusiness(id: string) { return this.db.businesses.find((b) => b.id === id) ?? null; }
   async getBusinessByPhone(phone: string) { return this.db.businesses.find((b) => b.phone_number === phone) ?? null; }
-  async getBusinessByChannelAccount(channel: "instagram" | "messenger", accountId: string) {
-    return this.db.businesses.find((b) => (channel === "instagram" ? b.instagram_account_id : b.messenger_page_id) === accountId) ?? null;
+  async getBusinessByChannelAccount(_channel: "instagram", accountId: string) {
+    return this.db.businesses.find((b) => b.instagram_account_id === accountId) ?? null;
   }
   async updateBusiness(id: string, patch: Partial<Business>) { return patchRow(this.db.businesses, id, patch); }
 
@@ -45,10 +45,10 @@ export class MemoryRepo implements Repo {
 
   async getClient(id: string) { return this.db.clients.find((c) => c.id === id) ?? null; }
   async findOrCreateClient(businessId: string, channel: Channel, handle: string) {
-    const key = channel === "sms" ? "phone" : channel === "instagram" ? "instagram_id" : "messenger_id";
+    const key = channel === "sms" ? "phone" : "instagram_id";
     let c = this.db.clients.find((x) => x.business_id === businessId && x[key] === handle);
     if (!c) {
-      c = { id: uid(), business_id: businessId, name: null, phone: null, instagram_id: null, messenger_id: null, notes: "", sms_opt_out: false, [key]: handle };
+      c = { id: uid(), business_id: businessId, name: null, phone: null, instagram_id: null, notes: "", sms_opt_out: false, [key]: handle };
       this.db.clients.push(c);
     }
     return c;

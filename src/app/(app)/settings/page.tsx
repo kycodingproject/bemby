@@ -21,13 +21,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   const plan = planOf(b.plan);
   const sp = await searchParams;
   const notice = sp.connected ? { ok: true, text: `Connected ${sp.connected}. Bemby will answer new messages there.` } : sp.error ? { ok: false, text: sp.error } : null;
-  let pendingPages: { id: string; name: string }[] = [];
-  let email = "";
-  if (!isDemo()) {
-    const secrets = await getChannelSecrets(b.id).catch(() => null);
-    pendingPages = (secrets?.pending_pages ?? []).map((p) => ({ id: p.id, name: p.name }));
-    email = (await currentUser())?.email ?? "";
-  }
+  const email = isDemo() ? "" : (await currentUser())?.email ?? "";
 
   return (
     <div className="flex flex-col gap-6">
@@ -39,8 +33,6 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <ChannelsPanel
         demo={isDemo()}
         instagram={b.instagram_account_id ? b.instagram_username ?? "connected" : null}
-        messenger={b.messenger_page_id ? b.messenger_page_name ?? "your Page" : null}
-        pendingPages={pendingPages}
         phone={fmtPhone(b.phone_number)}
         textingStatus={b.texting_status ?? "none"}
         email={email}
@@ -91,7 +83,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           </p>
           <p className="text-sm text-ink-2">{plan.summary}</p>
           {plan.id === "pro" ? (
-            <p className="text-[13px] leading-relaxed text-muted">Includes {b.monthly_text_limit.toLocaleString()} texts a month. Instagram and Messenger chats don&apos;t count. {EXTRA_TEXTS}</p>
+            <p className="text-[13px] leading-relaxed text-muted">Includes {b.monthly_text_limit.toLocaleString()} texts a month. Instagram chats don&apos;t count. {EXTRA_TEXTS}</p>
           ) : (
             <p className="text-[13px] leading-relaxed text-muted">Want clients to text you too? {PLANS.pro.name} adds a business phone number for {PLANS.pro.price}/month. Request it under &ldquo;Where clients reach you.&rdquo;</p>
           )}

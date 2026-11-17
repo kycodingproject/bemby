@@ -20,8 +20,8 @@ export class SupabaseRepo implements Repo {
   async getBusinessByPhone(phone: string) {
     return must(await this.sb.from("businesses").select("*").eq("phone_number", phone).maybeSingle()) as Business | null;
   }
-  async getBusinessByChannelAccount(channel: "instagram" | "messenger", accountId: string) {
-    const col = channel === "instagram" ? "instagram_account_id" : "messenger_page_id";
+  async getBusinessByChannelAccount(_channel: "instagram", accountId: string) {
+    const col = "instagram_account_id";
     return must(await this.sb.from("businesses").select("*").eq(col, accountId).maybeSingle()) as Business | null;
   }
   async updateBusiness(id: string, patch: Partial<Business>) {
@@ -53,7 +53,7 @@ export class SupabaseRepo implements Repo {
     return must(await this.sb.from("clients").select("*").eq("id", id).maybeSingle()) as Client | null;
   }
   async findOrCreateClient(businessId: string, channel: Channel, handle: string) {
-    const col = channel === "sms" ? "phone" : channel === "instagram" ? "instagram_id" : "messenger_id";
+    const col = channel === "sms" ? "phone" : "instagram_id";
     const found = must(await this.sb.from("clients").select("*").eq("business_id", businessId).eq(col, handle).maybeSingle()) as Client | null;
     if (found) return found;
     return must(await this.sb.from("clients").insert({ business_id: businessId, [col]: handle }).select().single()) as Client;

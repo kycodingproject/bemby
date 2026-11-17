@@ -20,7 +20,7 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
       name: PLANS.social.name,
       price: firstTime ? PLANS.trial.price : PLANS.social.price,
       period: firstTime ? `first month, then ${PLANS.social.price}/month` : "/ month",
-      points: ["Bemby answers Instagram & Messenger DMs", "Books appointments for your approval", "Inbox, calendar, goals and specials"],
+      points: ["Bemby answers your Instagram DMs", "Books appointments for your approval", "Inbox, calendar, goals and specials"],
       highlight: !wantsNumber,
     },
     {

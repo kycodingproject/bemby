@@ -63,7 +63,7 @@ export function SettingsForm(props: { autonomy: Autonomy; askFirst: Record<AskFi
         <p className="text-sm font-semibold">Only answer booking chats</p>
         <p className="text-[13px] leading-relaxed text-muted">
           Bemby stays quiet in chats with friends, family and random DMs. It only replies once someone uses a booking word or names one of your services. You can also tap
-          &ldquo;Let Bemby answer&rdquo; on any chat in your Inbox, and if you reply to someone yourself in Instagram or Messenger, Bemby steps back from that chat.
+          &ldquo;Let Bemby answer&rdquo; on any chat in your Inbox, and if you reply to someone yourself in Instagram, Bemby steps back from that chat.
         </p>
         <p className="text-[13px] text-muted">Words that wake Bemby up:</p>
         <ul className="flex flex-wrap gap-1.5" aria-label="Built-in booking words">

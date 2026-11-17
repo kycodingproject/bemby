@@ -17,7 +17,6 @@ export async function GET() {
     NEXT_PUBLIC_SUPABASE_ANON_KEY: has("NEXT_PUBLIC_SUPABASE_ANON_KEY") ? "set" : "MISSING (sign-in is off)",
     STRIPE_SECRET_KEY: !has("STRIPE_SECRET_KEY") ? "MISSING (payments are off)" : process.env.STRIPE_SECRET_KEY!.trim().startsWith("sk_") ? `set (${process.env.STRIPE_SECRET_KEY!.trim().startsWith("sk_live_") ? "live" : "test"} mode)` : "set, but doesn't start with sk_ (use the Secret key, not the Publishable key)",
     STRIPE_WEBHOOK_SECRET: !has("STRIPE_WEBHOOK_SECRET") ? "MISSING" : process.env.STRIPE_WEBHOOK_SECRET!.trim().startsWith("whsec_") ? "set" : "set, but doesn't start with whsec_",
-    META_APP_ID: has("META_APP_ID") ? "set" : "MISSING",
     INSTAGRAM_APP_ID: has("INSTAGRAM_APP_ID") ? "set" : "MISSING",
     data_mode: isMemory() ? "temporary memory (database not connected)" : "Supabase database",
     vercel_environment: process.env.VERCEL_ENV ?? "local",

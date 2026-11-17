@@ -13,7 +13,7 @@ Bemby is an AI receptionist for service businesses (hair stylists, estheticians,
 | Texting via Twilio (incoming webhook, outgoing replies, photo storage, STOP handling) | Built, needs Twilio keys |
 | Database schema with row-level security (Supabase) | Built, needs a Supabase project |
 | Sign-in and onboarding | Next |
-| Instagram and Messenger | Next |
+| Instagram DMs | Done |
 | Stripe billing ($19 first month, then $39) | Next |
 | Google / Apple calendar sync | Next |
 | Vagaro | After launch |
@@ -48,8 +48,8 @@ npx tsx scripts/test-agent.mts
 
 | Plan | Price | Includes |
 |---|---|---|
-| Trial | $4.99 first month | Instagram & Messenger DMs |
-| Bemby Social | $19.99 / month | Instagram & Messenger DMs |
+| Trial | $4.99 first month | Instagram DMs |
+| Bemby Social | $19.99 / month | Instagram DMs |
 | Bemby Pro | $39.99 / month | Social + business phone number and texting (1,000 texts/month) |
 
 Prices live in `src/lib/plans.ts`.

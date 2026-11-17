@@ -21,7 +21,7 @@ export async function storeTwilioMedia(businessId: string, url: string | undefin
   return { path, content_type: contentType };
 }
 
-/** Download a photo from a public CDN link (Instagram / Messenger attachments) and keep a private copy. */
+/** Download a photo from a public CDN link (Instagram attachments) and keep a private copy. */
 export async function storeRemoteMedia(businessId: string, url: string | undefined): Promise<MediaRef | null> {
   if (!url || !/^https:\/\//.test(url)) return null;
   const res = await fetch(url).catch(() => null);

@@ -5,7 +5,7 @@ export interface Repo {
   // businesses
   getBusiness(id: string): Promise<Business | null>;
   getBusinessByPhone(phone: string): Promise<Business | null>;
-  getBusinessByChannelAccount(channel: "instagram" | "messenger", accountId: string): Promise<Business | null>;
+  getBusinessByChannelAccount(channel: "instagram", accountId: string): Promise<Business | null>;
   updateBusiness(id: string, patch: Partial<Business>): Promise<Business>;
 
   // services & specials

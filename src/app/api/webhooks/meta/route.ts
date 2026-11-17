@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   return new NextResponse(p.get("hub.challenge") ?? "", { status: 200 });
 }
 
-/** Instagram DMs (object "instagram") and Messenger messages (object "page") arrive here. */
+/** Instagram DMs (object "instagram") arrive here. */
 export async function POST(req: NextRequest) {
   const raw = await req.text();
   if (!validMetaSignature(raw, req.headers.get("x-hub-signature-256"))) {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return new NextResponse("bad json", { status: 400 });
   }
-  const channel = body.object === "instagram" ? "instagram" : body.object === "page" ? "messenger" : null;
+  const channel = body.object === "instagram" ? "instagram" : null;
   console.log(`[meta webhook] received object=${body.object} accounts=${(body.entry ?? []).map((e) => e.id).join(",")}`);
   if (!channel) return NextResponse.json({ ok: true });
 
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         const msg = ev.message;
         const from = ev.sender?.id;
         if (msg?.is_echo) {
-          // A message sent FROM the business. If it wasn't sent by Bemby, the owner typed it in the Instagram/Messenger app.
+          // A message sent FROM the business. If it wasn't sent by Bemby, the owner typed it in the Instagram app.
           await handleOwnerAppReply(repo, business.id, channel, ev).catch((e) => console.error("[meta webhook] echo failed", e));
           continue;
         }
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
             if (ref) media.push(ref);
           }
           const text = msg.text ?? (msg.attachments?.some((a) => a.type !== "image") ? "[Client sent an attachment Bemby can't open, like a video, audio or shared post]" : "");
-          const isNew = !(await repo.listClients(business.id)).some((c) => (channel === "instagram" ? c.instagram_id : c.messenger_id) === from);
+          const isNew = !(await repo.listClients(business.id)).some((c) => c.instagram_id === from);
           const result = await handleInbound({
             repo, businessId: business.id, channel, from, body: text, media, providerMessageId: msg.mid, loadMedia: loadStoredMedia,
           });
@@ -93,11 +93,11 @@ export async function POST(req: NextRequest) {
 }
 
 /**
- * The owner replied to someone straight from the Instagram or Messenger app.
+ * The owner replied to someone straight from the Instagram app.
  * Show it in the Bemby inbox and have Bemby step back from that chat, so it never talks over the owner
  * (this is also how friends and family stay Bemby-free: answer them yourself once and Bemby stays out).
  */
-async function handleOwnerAppReply(repo: ReturnType<typeof getRepo>, businessId: string, channel: "instagram" | "messenger", ev: MessagingEvent) {
+async function handleOwnerAppReply(repo: ReturnType<typeof getRepo>, businessId: string, channel: "instagram", ev: MessagingEvent) {
   const mid = ev.message?.mid;
   const to = ev.recipient?.id;
   if (!mid || !to) return;
@@ -115,30 +115,27 @@ async function handleOwnerAppReply(repo: ReturnType<typeof getRepo>, businessId:
     await repo.updateConversation(conversation.id, { mode: "owner" });
     await repo.addMessage({
       business_id: businessId, conversation_id: conversation.id, author: "system", media: [], status: "sent", approval_reason: null,
-      body: `You replied from ${channel === "instagram" ? "Instagram" : "Messenger"}, so Bemby stepped back from this chat. Tap "Hand back to Bemby" to let it answer again.`,
+      body: `You replied from Instagram, so Bemby stepped back from this chat. Tap "Hand back to Bemby" to let it answer again.`,
     });
   }
 }
 
-/** Best effort: show the client's Instagram/Facebook name in the inbox instead of a number. */
-async function fillClientName(repo: ReturnType<typeof getRepo>, businessId: string, channel: "instagram" | "messenger", from: string, conversationId: string) {
+/** Best effort: show the client's Instagram name in the inbox instead of a number. */
+async function fillClientName(repo: ReturnType<typeof getRepo>, businessId: string, channel: "instagram", from: string, conversationId: string) {
   try {
     const secrets = await getChannelSecrets(businessId);
     const conv = await repo.getConversation(conversationId);
     if (!secrets || !conv) return;
     const client = await repo.getClient(conv.client_id);
     if (!client || client.name) return;
-    const url =
-      channel === "instagram" && secrets.instagram_token
-        ? `https://graph.instagram.com/${process.env.META_GRAPH_VERSION ?? "v25.0"}/${from}?fields=name,username&access_token=${encodeURIComponent(secrets.instagram_token)}`
-        : channel === "messenger" && secrets.messenger_page_token
-          ? `https://graph.facebook.com/${process.env.META_GRAPH_VERSION ?? "v25.0"}/${from}?fields=first_name,last_name&access_token=${encodeURIComponent(secrets.messenger_page_token)}`
-          : null;
+    const url = secrets.instagram_token
+      ? `https://graph.instagram.com/${process.env.META_GRAPH_VERSION ?? "v25.0"}/${from}?fields=name,username&access_token=${encodeURIComponent(secrets.instagram_token)}`
+      : null;
     if (!url) return;
     const res = await fetch(url);
     if (!res.ok) return;
-    const p = (await res.json()) as { name?: string; username?: string; first_name?: string; last_name?: string };
-    const name = p.name || [p.first_name, p.last_name && `${p.last_name[0]}.`].filter(Boolean).join(" ") || (p.username ? `@${p.username}` : "");
+    const p = (await res.json()) as { name?: string; username?: string };
+    const name = p.name || (p.username ? `@${p.username}` : "");
     if (name) await repo.updateClient(client.id, { name: name.slice(0, 80) });
   } catch {
     // names are a nicety; never fail the message over it

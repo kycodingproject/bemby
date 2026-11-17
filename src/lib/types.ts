@@ -1,7 +1,7 @@
 export type AssistantRole = "assistant" | "booking receptionist";
 export const ASSISTANT_ROLES: AssistantRole[] = ["assistant", "booking receptionist"];
 
-export type Channel = "sms" | "instagram" | "messenger";
+export type Channel = "sms" | "instagram";
 export type Autonomy = "auto" | "approve_all" | "situational";
 export type AskFirstKey = "new_client" | "reschedule" | "discount" | "off_menu" | "upset" | "every_booking";
 export type DayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
@@ -14,7 +14,6 @@ export interface Business {
   timezone: string;
   phone_number: string | null;
   instagram_account_id: string | null;
-  messenger_page_id: string | null;
   autonomy: Autonomy;
   ask_first: Record<AskFirstKey, boolean>;
   paused: boolean;
@@ -32,7 +31,6 @@ export interface Business {
   plan: string;
   monthly_text_limit: number;
   instagram_username?: string | null;
-  messenger_page_name?: string | null;
   texting_status?: "none" | "requested" | "pending" | "active" | "failed";
   texting_registration?: TextingRegistration | Record<string, never>;
   texting_requested_at?: string | null;
@@ -79,7 +77,6 @@ export interface Client {
   name: string | null;
   phone: string | null;
   instagram_id: string | null;
-  messenger_id: string | null;
   notes: string;
   sms_opt_out: boolean;
 }

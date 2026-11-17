@@ -4,7 +4,7 @@ import type { Repo } from "../repo/types";
 import type { Conversation, Message } from "../types";
 import { isDemo } from "../repo";
 import { DEMO_TEST_PHONE } from "../repo/seed";
-import { getChannelSecrets, refreshInstagramToken, saveChannelSecrets, sendInstagramText, sendMessengerText } from "./meta";
+import { getChannelSecrets, refreshInstagramToken, saveChannelSecrets, sendInstagramText } from "./meta";
 
 let _twilio: ReturnType<typeof twilio> | null = null;
 export function twilioClient() {
@@ -35,7 +35,7 @@ export async function deliver(repo: Repo, conversation: Conversation, message: M
       const sent = await twilioClient().messages.create({ from: business.phone_number, to: client.phone, body: message.body });
       return repo.updateMessage(message.id, { status: "sent", provider_message_id: sent.sid });
     }
-    // Instagram / Messenger: replies are free within 24h of the client's last message, then need the HUMAN_AGENT tag (up to 7 days).
+    // Instagram: replies are free within 24h of the client's last message, then need the HUMAN_AGENT tag (up to 7 days).
     const msgs = await repo.listMessages(conversation.id, 60);
     const lastClient = [...msgs].reverse().find((m) => m.author === "client");
     const age = lastClient ? Date.now() - new Date(lastClient.created_at).getTime() : Infinity;
@@ -43,7 +43,7 @@ export async function deliver(repo: Repo, conversation: Conversation, message: M
     const humanAgent = age > 24 * 3600_000;
     const secrets = await getChannelSecrets(business.id);
     // Instagram tokens last 60 days; renew quietly when fewer than 10 days are left.
-    if (conversation.channel === "instagram" && secrets?.instagram_token && secrets.instagram_token_expires_at) {
+    if (secrets?.instagram_token && secrets.instagram_token_expires_at) {
       const left = new Date(secrets.instagram_token_expires_at).getTime() - Date.now();
       if (left < 10 * 86400_000 && left > 0) {
         try {
@@ -55,16 +55,10 @@ export async function deliver(repo: Repo, conversation: Conversation, message: M
         }
       }
     }
-    const to = conversation.channel === "instagram" ? client.instagram_id : client.messenger_id;
+    const to = client.instagram_id;
     if (!to) throw new Error("Missing the client's account id");
-    let id: string;
-    if (conversation.channel === "instagram") {
-      if (!secrets?.instagram_token || !secrets.instagram_user_id) throw new Error("Instagram isn't connected. Reconnect it in Settings.");
-      id = await sendInstagramText({ igUserId: secrets.instagram_user_id, token: secrets.instagram_token, to, text: message.body, humanAgent });
-    } else {
-      if (!secrets?.messenger_page_token) throw new Error("Messenger isn't connected. Reconnect it in Settings.");
-      id = await sendMessengerText({ pageToken: secrets.messenger_page_token, to, text: message.body, humanAgent });
-    }
+    if (!secrets?.instagram_token || !secrets.instagram_user_id) throw new Error("Instagram isn't connected. Reconnect it in Settings.");
+    const id = await sendInstagramText({ igUserId: secrets.instagram_user_id, token: secrets.instagram_token, to, text: message.body, humanAgent });
     return repo.updateMessage(message.id, { status: "sent", provider_message_id: id });
   } catch (e) {
     console.error("deliver failed", e);

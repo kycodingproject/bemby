@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 /**
  * Meta "Data deletion request" callback. Meta posts a signed_request when a person asks
- * Instagram/Facebook to delete the data an app holds about them. We remove the connection
+ * Instagram to delete the data an app holds about them. We remove the connection
  * and reply with a status page link and confirmation code, as Meta requires.
  */
 export async function POST(req: NextRequest) {

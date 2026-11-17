@@ -32,7 +32,7 @@ const SCRIPTS: Script[] = [
   },
   {
     biz: "Lashes by Dee",
-    channel: "Messenger",
+    channel: "Text",
     tint: ["#9fd8ff", "#c7b5ff"],
     lines: [
       { from: "client", text: "how much for a lash fill?" },
@@ -50,7 +50,7 @@ const SCRIPTS: Script[] = [
   },
   {
     biz: "Ink & Iron Tattoo",
-    channel: "Text",
+    channel: "Instagram",
     tint: ["#ffc59e", "#b9a6ff"],
     lines: [
       { from: "client", text: "do you do fine line? want a small rose on my wrist" },

@@ -16,7 +16,6 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const channelLine = [
     d.byChannel.instagram && `${d.byChannel.instagram} on Instagram`,
     d.byChannel.sms && `${d.byChannel.sms} by text`,
-    d.byChannel.messenger && `${d.byChannel.messenger} on Messenger`,
   ].filter(Boolean).join(" · ");
 
   return (
@@ -33,7 +32,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </div>
       </header>
 
-      {(welcome || (!isDemo() && !d.business.instagram_account_id && !d.business.messenger_page_id)) && (
+      {(welcome || (!isDemo() && !d.business.instagram_account_id)) && (
         <section className="card flex flex-col gap-4 border-brand/30 bg-brand-soft p-5">
           <div className="flex items-start gap-4">
             <div className="orb size-10 shrink-0" />
@@ -42,13 +41,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 {welcome ? `You're all set up, ${d.business.owner_name}!` : "Connect your DMs so Bemby can start booking"}
               </p>
               <p className="mt-1 text-sm text-ink-2">
-                Connect Instagram and Messenger and Bemby starts answering DMs right away. You can also practice in your Inbox first.
+                Connect Instagram and Bemby starts answering DMs right away. You can also practice in your Inbox first.
                 {d.business.texting_status === "requested" && " Your business phone number request is in. Carrier approval usually takes 2–4 days once billing is on."}
               </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2.5">
-            <Link href="/settings#channels" className="btn btn-primary">Connect Instagram & Messenger</Link>
+            <Link href="/settings#channels" className="btn btn-primary">Connect Instagram</Link>
             <Link href="/inbox" className="btn btn-ghost bg-card">Practice in Inbox</Link>
           </div>
         </section>

@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       </p>
       <ul>
         <li><strong>Business owners</strong> who create a {app} account (&ldquo;you&rdquo;).</li>
-        <li><strong>Their clients</strong>, who message a business through text, Instagram or Facebook Messenger and are answered by {app}.</li>
+        <li><strong>Their clients</strong>, who message a business through text or Instagram and are answered by {app}.</li>
       </ul>
       <p>
         For client conversations, the business is in charge of its client relationships and decides how to use that information. {app} handles client messages on the business&apos;s behalf to answer questions and book appointments.
@@ -27,12 +27,12 @@ export default function PrivacyPage() {
         <li>Business details you enter: business name, your first name, services, prices, hours, policies and booking preferences.</li>
         <li>If you request a business phone number: legal business name, EIN (if you have one), business address, mobile number and email, which phone carriers require to register businesses that send text messages.</li>
         <li>Billing details: handled by Stripe. We receive your subscription status and limited details such as card brand and last four digits; we never see or store your full card number.</li>
-        <li>Connected accounts: if you connect Instagram or a Facebook Page, we receive access tokens and basic account details (such as your Instagram username or Page name) so {app} can read and reply to your messages.</li>
+        <li>Connected accounts: if you connect Instagram, we receive access tokens and basic account details (such as your Instagram username) so {app} can read and reply to your messages.</li>
       </ul>
       <h3>From clients of a business</h3>
       <ul>
-        <li>The messages, photos and other content a client sends to the business by text, Instagram or Messenger, and the replies sent back.</li>
-        <li>The client&apos;s phone number or Instagram/Messenger account ID, and their name if they share it or it is provided by Instagram or Facebook.</li>
+        <li>The messages, photos and other content a client sends to the business by text or Instagram, and the replies sent back.</li>
+        <li>The client&apos;s phone number or Instagram account ID, and their name if they share it or it is provided by Instagram.</li>
         <li>Appointment details such as the service requested, date and time, and answers to the business&apos;s booking questions (for example, hair length or reference photos).</li>
       </ul>
       <h3>Automatically</h3>
@@ -55,9 +55,9 @@ export default function PrivacyPage() {
         {app} uses an AI model provided by Anthropic to read client messages and photos and write replies. Messages are sent to Anthropic only to generate a reply for that conversation. Business owners can review conversations, approve replies before they are sent, or take over a conversation at any time.
       </p>
 
-      <h2>Information from Instagram and Facebook (Meta Platform Data)</h2>
+      <h2>Information from Instagram (Meta Platform Data)</h2>
       <p>
-        When a business connects Instagram or Messenger, we access messages and basic profile information only to provide {app}&apos;s messaging and booking features to that business. We do not sell Meta Platform Data, use it for advertising, or share it with data brokers. We follow Meta&apos;s Platform Terms. A business can disconnect at any time in {app} Settings or in its Instagram or Facebook settings, and can ask us to delete the data (see <a href="/data-deletion">Data deletion</a>).
+        When a business connects Instagram, we access messages and basic profile information only to provide {app}&apos;s messaging and booking features to that business. We do not sell Meta Platform Data, use it for advertising, or share it with data brokers. We follow Meta&apos;s Platform Terms. A business can disconnect at any time in {app} Settings or in its Instagram settings, and can ask us to delete the data (see <a href="/data-deletion">Data deletion</a>).
       </p>
 
       <h2>Text messaging (SMS)</h2>
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
         <li>Vercel (website hosting)</li>
         <li>Anthropic (AI replies)</li>
         <li>Twilio (phone numbers and text messaging)</li>
-        <li>Meta (Instagram and Messenger messaging)</li>
+        <li>Meta (Instagram messaging)</li>
         <li>Stripe (payments)</li>
       </ul>
       <p>We may also share information if required by law, to protect people&apos;s safety, or as part of a sale or merger of the business, in which case this policy would continue to apply.</p>
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
 
       <h2>Your choices and rights</h2>
       <ul>
-        <li>Business owners can edit their details in Settings, disconnect Instagram or Messenger, and delete their account in Settings.</li>
+        <li>Business owners can edit their details in Settings, disconnect Instagram, and delete their account in Settings.</li>
         <li>Clients can ask the business they messaged, or contact us, to access or delete their messages and booking details. Texting STOP ends text messages from that business.</li>
         <li>Depending on where you live (for example, California), you may have the right to know, access, correct or delete personal information, and to not be discriminated against for using these rights. Contact us at {email} to make a request.</li>
       </ul>

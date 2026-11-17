@@ -4,14 +4,11 @@ import { serviceRoleClient } from "../repo/supabase";
 
 const GRAPH_VERSION = process.env.META_GRAPH_VERSION ?? "v25.0";
 const IG_GRAPH = `https://graph.instagram.com/${GRAPH_VERSION}`;
-const FB_GRAPH = `https://graph.facebook.com/${GRAPH_VERSION}`;
 
 export const INSTAGRAM_SCOPES = ["instagram_business_basic", "instagram_business_manage_messages"];
-export const MESSENGER_SCOPES = ["pages_show_list", "pages_messaging", "pages_manage_metadata"];
 
 const env = (k: string) => process.env[k]?.trim() || "";
 export const instagramConfigured = () => Boolean(env("INSTAGRAM_APP_ID") && env("INSTAGRAM_APP_SECRET"));
-export const messengerConfigured = () => Boolean(env("META_APP_ID") && env("META_APP_SECRET"));
 
 async function json<T>(res: Response): Promise<T> {
   const body = (await res.json().catch(() => ({}))) as T & { error?: { message?: string } | string; error_message?: string };
@@ -73,44 +70,6 @@ export async function refreshInstagramToken(token: string) {
   return { token: r.access_token, expiresAt: new Date(Date.now() + r.expires_in * 1000).toISOString() };
 }
 
-// ---------- Messenger (Facebook Login -> Page access token) ----------
-
-export function facebookAuthUrl(state: string, redirectUri: string) {
-  const u = new URL(`https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth`);
-  u.searchParams.set("client_id", env("META_APP_ID"));
-  u.searchParams.set("redirect_uri", redirectUri);
-  u.searchParams.set("state", state);
-  // Business-type apps use Facebook Login for Business: a saved configuration replaces the scope list.
-  const configId = env("META_LOGIN_CONFIG_ID");
-  if (configId) u.searchParams.set("config_id", configId);
-  else u.searchParams.set("scope", MESSENGER_SCOPES.join(","));
-  u.searchParams.set("response_type", "code");
-  return u.toString();
-}
-
-export interface PageOption {
-  id: string;
-  name: string;
-  access_token: string;
-}
-
-export async function listFacebookPages(code: string, redirectUri: string): Promise<PageOption[]> {
-  const q = (p: Record<string, string>) => new URLSearchParams(p).toString();
-  const short = await json<{ access_token: string }>(
-    await fetch(`${FB_GRAPH}/oauth/access_token?${q({ client_id: env("META_APP_ID"), client_secret: env("META_APP_SECRET"), redirect_uri: redirectUri, code })}`),
-  );
-  // A long-lived user token gives Page tokens that don't expire.
-  const long = await json<{ access_token: string }>(
-    await fetch(`${FB_GRAPH}/oauth/access_token?${q({ grant_type: "fb_exchange_token", client_id: env("META_APP_ID"), client_secret: env("META_APP_SECRET"), fb_exchange_token: short.access_token })}`),
-  );
-  const pages = await json<{ data: PageOption[] }>(await fetch(`${FB_GRAPH}/me/accounts?fields=id,name,access_token&limit=50&access_token=${encodeURIComponent(long.access_token)}`));
-  return pages.data ?? [];
-}
-
-export async function subscribePage(pageId: string, pageToken: string) {
-  await json(await fetch(`${FB_GRAPH}/${pageId}/subscribed_apps?subscribed_fields=messages,message_echoes&access_token=${encodeURIComponent(pageToken)}`, { method: "POST" }));
-}
-
 // ---------- Sending ----------
 
 /**
@@ -124,23 +83,6 @@ export async function sendInstagramText(opts: { igUserId: string; token: string;
     await fetch(`${IG_GRAPH}/${opts.igUserId}/messages`, {
       method: "POST",
       headers: { authorization: `Bearer ${opts.token}`, "content-type": "application/json" },
-      body: JSON.stringify(body),
-    }),
-  );
-  return r.message_id;
-}
-
-export async function sendMessengerText(opts: { pageToken: string; to: string; text: string; humanAgent?: boolean }) {
-  const body: Record<string, unknown> = {
-    recipient: { id: opts.to },
-    message: { text: opts.text.slice(0, 2000) },
-    messaging_type: opts.humanAgent ? "MESSAGE_TAG" : "RESPONSE",
-    ...(opts.humanAgent ? { tag: "HUMAN_AGENT" } : {}),
-  };
-  const r = await json<{ message_id: string }>(
-    await fetch(`${FB_GRAPH}/me/messages?access_token=${encodeURIComponent(opts.pageToken)}`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
       body: JSON.stringify(body),
     }),
   );
@@ -176,10 +118,6 @@ export interface ChannelSecrets {
   instagram_username: string | null;
   instagram_token: string | null;
   instagram_token_expires_at: string | null;
-  messenger_page_id: string | null;
-  messenger_page_name: string | null;
-  messenger_page_token: string | null;
-  pending_pages: PageOption[] | null;
 }
 
 export async function getChannelSecrets(businessId: string): Promise<ChannelSecrets | null> {

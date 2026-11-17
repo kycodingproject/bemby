@@ -278,34 +278,13 @@ export async function saveHours(input: { hours: unknown; minNoticeHours: number;
 
 // ---------- Channels ----------
 
-export async function disconnectChannel(kind: "instagram" | "messenger") {
+export async function disconnectChannel(kind: "instagram") {
   const { repo, business } = await ownedBusiness();
-  if (isDemo()) return;
+  if (isDemo() || kind !== "instagram") return;
   const { saveChannelSecrets } = await import("@/lib/channels/meta");
-  if (kind === "instagram") {
-    await saveChannelSecrets(business.id, { instagram_user_id: null, instagram_username: null, instagram_token: null, instagram_token_expires_at: null });
-    await repo.updateBusiness(business.id, { instagram_account_id: null, instagram_username: null });
-  } else {
-    await saveChannelSecrets(business.id, { messenger_page_id: null, messenger_page_name: null, messenger_page_token: null, pending_pages: null });
-    await repo.updateBusiness(business.id, { messenger_page_id: null, messenger_page_name: null });
-  }
+  await saveChannelSecrets(business.id, { instagram_user_id: null, instagram_username: null, instagram_token: null, instagram_token_expires_at: null });
+  await repo.updateBusiness(business.id, { instagram_account_id: null, instagram_username: null });
   refresh();
-}
-
-export async function chooseMessengerPage(pageId: string) {
-  const { business } = await ownedBusiness();
-  const { getChannelSecrets } = await import("@/lib/channels/meta");
-  const { linkMessengerPage } = await import("@/lib/channels/link");
-  const secrets = await getChannelSecrets(business.id);
-  const page = secrets?.pending_pages?.find((p) => p.id === pageId);
-  if (!page) return { error: "That Page list expired. Tap Connect Messenger again." };
-  try {
-    await linkMessengerPage(business.id, page);
-  } catch (e) {
-    return { error: (e as Error).message };
-  }
-  refresh();
-  return { ok: true };
 }
 
 // ---------- Business phone number ----------

@@ -4,7 +4,7 @@ import { forgetMetaUser } from "@/lib/channels/forget";
 
 export const runtime = "nodejs";
 
-/** Meta "Deauthorize" callback: someone removed Bemby from their Instagram/Facebook settings. */
+/** Meta "Deauthorize" callback: someone removed Bemby from their Instagram settings. */
 export async function POST(req: NextRequest) {
   const form = await req.formData().catch(() => null);
   const data = parseSignedRequest(form ? String(form.get("signed_request") ?? "") : null);

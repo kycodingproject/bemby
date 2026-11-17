@@ -19,7 +19,6 @@ export function seedDemo(now: Date): MemoryDb {
     phone_number: "+13105550123",
     instagram_account_id: "demo-ig",
     instagram_username: "kiarahairstudio",
-    messenger_page_id: null,
     autonomy: "situational",
     ask_first: { new_client: false, reschedule: true, discount: true, off_menu: true, upset: true, every_booking: false },
     paused: false,
@@ -61,8 +60,8 @@ export function seedDemo(now: Date): MemoryDb {
   ];
 
   const clients: Client[] = [];
-  const client = (name: string, ch: { phone?: string; ig?: string; fb?: string }) => {
-    const c: Client = { id: crypto.randomUUID(), business_id: business.id, name, phone: ch.phone ?? null, instagram_id: ch.ig ?? null, messenger_id: ch.fb ?? null, notes: "", sms_opt_out: false };
+  const client = (name: string, ch: { phone?: string; ig?: string }) => {
+    const c: Client = { id: crypto.randomUUID(), business_id: business.id, name, phone: ch.phone ?? null, instagram_id: ch.ig ?? null, notes: "", sms_opt_out: false };
     clients.push(c);
     return c;
   };
@@ -71,7 +70,7 @@ export function seedDemo(now: Date): MemoryDb {
   const nia = client("Nia P.", { ig: "nia.p" });
   const lauren = client("Lauren B.", { phone: "+13105550114" });
   const kendra = client("Kendra S.", { ig: "kendra.s" });
-  const tay = client("Tay M.", { fb: "tay.m" });
+  const tay = client("Tay M.", { ig: "tay.m" });
   const jasmine = client("Jasmine R.", { ig: "jasmine.r" });
   const marcus = client("Marcus T.", { phone: "+13105550118" });
 
@@ -150,7 +149,7 @@ export function seedDemo(now: Date): MemoryDb {
     photos: [photo("Current hair"), photo("Inspo")], created_at: now.toISOString(),
   });
 
-  const tayConvo = convo(tay, "messenger", "Reschedule", "ai", [
+  const tayConvo = convo(tay, "instagram", "Reschedule", "ai", [
     ["client", "hey can i move my appt? something came up"],
     ["ai", "No problem, Tay! Let me check with Kiara and get right back to you."],
   ], 60);

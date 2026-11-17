@@ -1,7 +1,7 @@
 /** Bemby pricing. One place to change prices shown across the site. */
 export const PLANS = {
-  trial: { id: "trial", name: "Trial", price: "$4.99", period: "first month", texts: 0, summary: "Instagram & Messenger DMs. Becomes Bemby Social after the first month." },
-  social: { id: "social", name: "Bemby Social", price: "$19.99", period: "/ month", texts: 0, summary: "Bemby answers and books on Instagram & Messenger DMs." },
+  trial: { id: "trial", name: "Trial", price: "$4.99", period: "first month", texts: 0, summary: "Instagram DMs. Becomes Bemby Social after the first month." },
+  social: { id: "social", name: "Bemby Social", price: "$19.99", period: "/ month", texts: 0, summary: "Bemby answers and books in your Instagram DMs." },
   pro: { id: "pro", name: "Bemby Pro", price: "$39.99", period: "/ month", texts: 1000, summary: "Everything in Social, plus your own business phone number and texting." },
 } as const;
 

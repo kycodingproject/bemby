@@ -10,13 +10,13 @@ export function baseUrl(req: NextRequest) {
 }
 
 /** One-time random value tying the Meta login back to this browser (prevents forged callbacks). */
-export async function newOAuthState(kind: "instagram" | "messenger") {
+export async function newOAuthState(kind: "instagram") {
   const state = `${kind}.${randomBytes(24).toString("hex")}`;
   (await cookies()).set(COOKIE, state, { httpOnly: true, secure: true, sameSite: "lax", path: "/api/connect", maxAge: 600 });
   return state;
 }
 
-export async function checkOAuthState(kind: "instagram" | "messenger", given: string | null) {
+export async function checkOAuthState(kind: "instagram", given: string | null) {
   const store = await cookies();
   const expected = store.get(COOKIE)?.value ?? "";
   store.delete({ name: COOKIE, path: "/api/connect" });

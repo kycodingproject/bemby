@@ -16,7 +16,7 @@ export default function TermsPage() {
 
       <h2>1. What {app} does</h2>
       <p>
-        {app} is an AI receptionist. It answers your clients by text message, Instagram and Facebook Messenger, collects booking details, suggests open times, and sends appointment requests to you. {app} never confirms an appointment without your approval. You choose how much it does on its own in Settings, and you can pause it or take over any conversation.
+        {app} is an AI receptionist. It answers your clients by text message and Instagram, collects booking details, suggests open times, and sends appointment requests to you. {app} never confirms an appointment without your approval. You choose how much it does on its own in Settings, and you can pause it or take over any conversation.
       </p>
 
       <h2>2. Your account</h2>
@@ -43,9 +43,9 @@ export default function TermsPage() {
         <li>The number is provided for use with {app}. If your account closes, the number may be released.</li>
       </ul>
 
-      <h2>5. Instagram and Facebook</h2>
+      <h2>5. Instagram</h2>
       <p>
-        When you connect Instagram or Messenger, you also follow Meta&apos;s terms. Meta limits when businesses may reply (for example, within 24 hours of a client&apos;s last message), and {app} follows those limits. Meta may change or restrict these features at any time.
+        When you connect Instagram, you also follow Meta&apos;s terms. Meta limits when businesses may reply (for example, within 24 hours of a client&apos;s last message), and {app} follows those limits. Meta may change or restrict these features at any time.
       </p>
 
       <h2>6. Acceptable use</h2>

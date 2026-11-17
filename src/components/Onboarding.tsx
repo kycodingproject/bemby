@@ -89,7 +89,7 @@ export function Onboarding({ email }: { email: string }) {
               `We started you with common ${t.label.toLowerCase()} services. Set your prices and pick what Bemby asks for before booking.`,
               "Bemby only offers times inside these hours, and never double-books.",
               "Give your receptionist a name. Clients will only ever see that name, never Bemby. Then pick how hands-on you want to be.",
-              "Bemby answers Instagram and Facebook Messenger DMs right away. A business phone number for texting is optional.",
+              "Bemby answers your Instagram DMs right away. A business phone number for texting is optional.",
             ][step]}
           </p>
         </div>
@@ -229,7 +229,7 @@ export function Onboarding({ email }: { email: string }) {
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-3" role="radiogroup" aria-label="Phone number">
               {[
-                { on: false, title: `Instagram & Messenger: ${PLANS.trial.price} first month`, desc: `Then ${PLANS.social.price}/month. You'll connect your accounts next, and Bemby starts answering DMs today.` },
+                { on: false, title: `Instagram DMs: ${PLANS.trial.price} first month`, desc: `Then ${PLANS.social.price}/month. You'll connect your accounts next, and Bemby starts answering DMs today.` },
                 { on: true, title: `Add a business phone number & texting: ${PLANS.pro.price}/month`, desc: `${PLANS.pro.name}: a dedicated number clients can text, separate from your personal phone, with ${PLANS.pro.texts.toLocaleString()} texts a month. Carrier approval usually takes 2–4 days, and Bemby answers DMs while you wait. (The ${PLANS.trial.price} trial covers DMs only.)` },
               ].map((o) => (
                 <button

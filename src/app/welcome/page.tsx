@@ -7,13 +7,13 @@ import { PLANS } from "@/lib/plans";
 
 export const metadata = {
   title: "Bemby · Your DMs, booked",
-  description: "An AI receptionist that answers your Instagram, Messenger and text clients, collects inspo pics, offers your open times and books appointments for you to approve.",
+  description: "An AI receptionist that answers your Instagram and text clients, collects inspo pics, offers your open times and books appointments for you to approve.",
 };
 
 const BUSINESSES = ["Hairstylists", "Lash artists", "Tattoo artists", "Nail techs", "Estheticians", "Barbers", "Brow artists", "Braiders"];
 
 const STEPS = [
-  { n: "01", title: "Connect your DMs", body: "Link Instagram and Messenger in a couple of taps, or get a business number for texting. Add your services, prices and hours." },
+  { n: "01", title: "Connect your DMs", body: "Link your Instagram in a couple of taps, and add a business number for texting if you want one. Add your services, prices and hours." },
   { n: "02", title: "Your receptionist takes the chat", body: "Give it a name. It answers questions, asks for hair or reference photos, and offers only times you're actually free." },
   { n: "03", title: "You tap approve", body: "Every booking lands on your calendar as a request. Approve or decline in one tap and the client hears back right away." },
 ];
@@ -64,7 +64,7 @@ export default function Welcome() {
       <section className="relative z-10 mx-auto grid max-w-7xl items-center gap-x-8 gap-y-12 px-4 pb-16 pt-8 md:px-8 lg:grid-cols-[1fr_1.1fr] lg:pt-10">
         <div className="flex flex-col items-start gap-6">
           <p className="landing-rise inline-flex items-center gap-2 rounded-full bg-white/80 px-3.5 py-1.5 text-[13px] font-semibold text-brand-ink shadow-[0_0_0_1px_rgba(106,75,245,0.18)] backdrop-blur">
-            <span className="size-2 rounded-full bg-brand landing-ping" /> Your receptionist for Instagram, Messenger & text
+            <span className="size-2 rounded-full bg-brand landing-ping" /> Your receptionist for Instagram DMs & text
           </p>
           <h1 className="landing-rise font-display text-[44px] font-bold leading-[1.03] tracking-[-0.035em] sm:text-6xl lg:text-[68px] [animation-delay:80ms]">
             Your DMs,{" "}
@@ -163,8 +163,8 @@ export default function Welcome() {
         </Reveal>
         <div className="mx-auto mt-12 grid max-w-5xl gap-5 md:grid-cols-3">
           {[
-            { plan: PLANS.trial, points: ["Instagram & Messenger DMs", "Calendar, inbox & goals", "Becomes Social after month one"], hot: false },
-            { plan: PLANS.social, points: ["Instagram & Messenger DMs", "Unlimited conversations", "Specials, goals & streaks"], hot: true },
+            { plan: PLANS.trial, points: ["Instagram DMs", "Calendar, inbox & goals", "Becomes Social after month one"], hot: false },
+            { plan: PLANS.social, points: ["Instagram DMs", "Unlimited conversations", "Specials, goals & streaks"], hot: true },
             { plan: PLANS.pro, points: ["Everything in Social", "Your own business number", "1,000 texts a month"], hot: false },
           ].map(({ plan, points, hot }, i) => (
             <Reveal key={plan.id} delay={i * 120}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { chooseMessengerPage, disconnectChannel, requestBusinessNumber } from "@/app/(app)/actions";
+import { disconnectChannel, requestBusinessNumber } from "@/app/(app)/actions";
 import { upgradeOrCheckoutPro } from "@/app/(app)/billing/actions";
 import { emptyRegistration, NumberRequestFields } from "./NumberRequest";
 import { NUMBER_APPROVAL, PLANS } from "@/lib/plans";
@@ -9,8 +9,6 @@ import { NUMBER_APPROVAL, PLANS } from "@/lib/plans";
 export function ChannelsPanel(props: {
   demo: boolean;
   instagram: string | null;
-  messenger: string | null;
-  pendingPages: { id: string; name: string }[];
   phone: string | null;
   textingStatus: "none" | "requested" | "pending" | "active" | "failed";
   email: string;
@@ -56,36 +54,6 @@ export function ChannelsPanel(props: {
           <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => start(() => disconnectChannel("instagram"))}>Disconnect</button>
         ) : (
           connectLink("/api/connect/instagram", "Connect Instagram")
-        )}
-      </div>
-
-      <div className={row}>
-        <div>
-          <p className="text-sm font-semibold">Facebook Messenger</p>
-          <p className="mt-0.5 text-[13px] text-muted">{props.messenger ? `Connected to ${props.messenger}` : "Needs a Facebook Page for your business"}</p>
-        </div>
-        {props.messenger ? (
-          <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => start(() => disconnectChannel("messenger"))}>Disconnect</button>
-        ) : (
-          connectLink("/api/connect/messenger", "Connect Messenger")
-        )}
-        {props.pendingPages.length > 0 && !props.messenger && (
-          <div className="flex w-full flex-col gap-2 rounded-2xl bg-soft p-4">
-            <p className="text-sm font-semibold">Which Page should Bemby answer for?</p>
-            <div className="flex flex-wrap gap-2">
-              {props.pendingPages.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className="btn btn-ghost bg-card"
-                  disabled={busy}
-                  onClick={() => start(async () => { const r = await chooseMessengerPage(p.id); setErr(r?.error ?? null); })}
-                >
-                  {p.name}
-                </button>
-              ))}
-            </div>
-          </div>
         )}
       </div>
 

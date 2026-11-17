@@ -3,7 +3,7 @@ import { serviceRoleClient } from "../repo/supabase";
 
 /**
  * Remove a Meta account's connection from whichever business has it.
- * Called when someone removes Bemby in Instagram/Facebook settings or asks Meta to delete their data.
+ * Called when someone removes Bemby in Instagram settings or asks Meta to delete their data.
  * Returns how many businesses were affected.
  */
 export async function forgetMetaUser(userId: string) {
