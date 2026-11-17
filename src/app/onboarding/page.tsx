@@ -4,6 +4,9 @@ import { serviceRoleClient } from "@/lib/repo/supabase";
 import { Onboarding } from "@/components/Onboarding";
 
 export const dynamic = "force-dynamic";
+// Reading a price-list photo with the AI can take ~30 seconds.
+export const maxDuration = 60;
+
 export const metadata = { title: "Set up Bemby" };
 
 export default async function OnboardingPage() {

@@ -106,7 +106,10 @@ function Task({ task }: { task: TrainingTask }) {
           className="input min-h-20 bg-soft py-2.5 leading-relaxed"
           value={answer + (voice.interim ? (answer ? " " : "") + voice.interim : "")}
           maxLength={1000}
-          onChange={(e) => setAnswer(e.target.value)}
+          onChange={(e) => {
+            if (voice.listening) voice.stop(); // typing takes over from the microphone
+            setAnswer(e.target.value);
+          }}
           placeholder="Type or say your answer the way you'd tell a client, e.g. “Yes! Street parking out front, and there's a free lot behind the building.” If it doesn't apply, just say so, like “We don't offer that.”"
         />
         {voice.listening && (

@@ -1,7 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { BUSINESS_TYPES, DURATIONS, type ServiceDraft } from "../templates";
 
-const MODEL = process.env.BEMBY_VISION_MODEL ?? "claude-sonnet-5-5";
+const VISION_MODEL = process.env.BEMBY_VISION_MODEL?.trim() || "claude-sonnet-5-5";
+const TEXT_MODEL = process.env.BEMBY_CHAT_MODEL?.trim() || "claude-haiku-5-5";
 
 export type PriceListFile = { data: string; mediaType: "image/jpeg" | "image/png" | "image/webp" | "image/gif" | "application/pdf" };
 
@@ -63,8 +64,8 @@ export async function extractServices(input: { businessType: string; text?: stri
       (askKeys.length ? ` Allowed 'asks': ${type.asks.map((a) => `${a.key} (${a.label})`).join("; ")}.` : ""),
   });
 
-  const res = await new Anthropic().messages.create({
-    model: MODEL,
+  const res = await new Anthropic({ timeout: 55_000, maxRetries: 1 }).messages.create({
+    model: input.file ? VISION_MODEL : TEXT_MODEL,
     max_tokens: 4000,
     tools: [tool],
     tool_choice: { type: "tool", name: "save_services" },

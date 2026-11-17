@@ -15,6 +15,9 @@ import { billingEnabled, hasActivePlan } from "@/lib/billing";
 import { openBillingPortal } from "../billing/actions";
 import { DeleteAccount } from "@/components/DeleteAccount";
 
+// Reading a price-list photo with the AI can take ~30 seconds.
+export const maxDuration = 60;
+
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ connected?: string; error?: string }> }) {
   const repo = getRepo();
   const b = (await repo.getBusiness(await currentBusinessId()))!;

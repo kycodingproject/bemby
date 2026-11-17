@@ -20,10 +20,16 @@ const getRecognizer = (): RecognizerCtor | null => {
   const w = window as unknown as { SpeechRecognition?: RecognizerCtor; webkitSpeechRecognition?: RecognizerCtor };
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 };
+const isPhone = () =>
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
 
 /**
  * Talk instead of typing. `onText` receives each finished phrase; `interim` is what's being heard right now.
  * Keeps listening through pauses until stop() is called.
+ *
+ * Phones behave differently from computers: iPhones often never mark words as "final", and Android repeats
+ * phrases in continuous mode. So on phones we listen one phrase at a time, and whatever was heard is kept
+ * when listening ends instead of being thrown away.
  */
 export function useDictation(onText: (text: string) => void) {
   const [listening, setListening] = useState(false);
@@ -31,21 +37,38 @@ export function useDictation(onText: (text: string) => void) {
   const [error, setError] = useState("");
   const rec = useRef<Recognizer | null>(null);
   const want = useRef(false);
+  const live = useRef(""); // heard but not final yet
   const cb = useRef(onText);
   useEffect(() => {
     cb.current = onText;
   }, [onText]);
 
+  /** Keep what was heard so far (used when listening ends before the browser "finalizes" it). */
+  const flush = useCallback(() => {
+    const t = live.current.trim();
+    live.current = "";
+    setInterim("");
+    if (t) cb.current(t);
+  }, []);
+
   const stop = useCallback(() => {
     want.current = false;
-    rec.current?.stop();
+    flush();
+    try {
+      rec.current?.stop();
+    } catch {
+      /* already stopped */
+    }
     setListening(false);
-    setInterim("");
-  }, []);
+  }, [flush]);
 
   useEffect(() => () => {
     want.current = false;
-    rec.current?.stop();
+    try {
+      rec.current?.stop();
+    } catch {
+      /* already stopped */
+    }
   }, []);
 
   const start = useCallback(() => {
@@ -56,45 +79,61 @@ export function useDictation(onText: (text: string) => void) {
       return;
     }
     const r = new Ctor();
-    r.continuous = true;
+    r.continuous = !isPhone();
     r.interimResults = true;
     r.lang = navigator.language || "en-US";
+    let done = 0; // results already handed over in this listening session
+    const begin = () => {
+      done = 0;
+      r.start();
+    };
     r.onresult = (e) => {
-      let finals = "";
-      let live = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const piece = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finals += piece;
-        else live += piece;
+      let heard = "";
+      for (let i = done; i < e.results.length; i++) {
+        const res = e.results[i];
+        const piece = res[0].transcript;
+        if (res.isFinal && i === done) {
+          if (piece.trim()) cb.current(piece.trim());
+          done = i + 1;
+        } else heard += piece;
       }
-      if (finals.trim()) cb.current(finals.trim());
-      setInterim(live);
+      live.current = heard;
+      setInterim(heard);
     };
     r.onerror = (e) => {
       if (e.error === "no-speech" || e.error === "aborted") return;
       want.current = false;
+      flush();
       setListening(false);
-      setError(e.error === "not-allowed" || e.error === "service-not-allowed" ? "Allow microphone access for this site in your browser, then try again." : "The microphone stopped. Tap the mic to keep going.");
+      setError(
+        e.error === "not-allowed" || e.error === "service-not-allowed"
+          ? "Allow microphone access for this site in your browser settings, then try again."
+          : e.error === "network"
+            ? "Voice typing needs an internet connection to your browser's speech service. Try again, or type it."
+            : "The microphone stopped. Tap the mic to keep going.",
+      );
     };
-    // Browsers stop after a pause; keep going until the owner taps stop.
+    // Each phrase (on phones) or long pause (on computers) ends a session: keep the words, then listen again.
     r.onend = () => {
-      if (want.current) {
-        try {
-          r.start();
-        } catch {
-          setListening(false);
-        }
-      } else setListening(false);
+      flush();
+      if (!want.current) return setListening(false);
+      try {
+        begin();
+      } catch {
+        want.current = false;
+        setListening(false);
+      }
     };
     rec.current = r;
     want.current = true;
     try {
-      r.start();
+      begin();
       setListening(true);
     } catch {
+      want.current = false;
       setError("Couldn't start the microphone. Try again.");
     }
-  }, []);
+  }, [flush]);
 
   return { listening, interim, error, start, stop };
 }

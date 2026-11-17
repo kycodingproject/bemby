@@ -1,27 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
+import { useDictation } from "@/hooks/useDictation";
 import { importServices } from "@/app/_actions/import-services";
 import { durationLabel, type ServiceDraft } from "@/lib/templates";
-
-// The browser's built-in speech-to-text (Chrome, Edge, Safari). Not in TypeScript's DOM types yet.
-interface SpeechResultList { length: number; [i: number]: { isFinal: boolean; 0: { transcript: string } } }
-interface Recognizer {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onresult: ((e: { resultIndex: number; results: SpeechResultList }) => void) | null;
-  onerror: ((e: { error: string }) => void) | null;
-  onend: (() => void) | null;
-  start: () => void;
-  stop: () => void;
-}
-type RecognizerCtor = new () => Recognizer;
-const getRecognizer = (): RecognizerCtor | null => {
-  if (typeof window === "undefined") return null;
-  const w = window as unknown as { SpeechRecognition?: RecognizerCtor; webkitSpeechRecognition?: RecognizerCtor };
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
-};
 
 /** Shrink phone photos so they upload fast (and stay under the server's size limit). */
 async function photoToBase64(file: File): Promise<{ data: string; mediaType: "image/jpeg" }> {
@@ -50,83 +32,34 @@ const fileToBase64 = (file: File) =>
 export function ServicesImport(props: { businessType: string; services: ServiceDraft[]; onApply: (s: ServiceDraft[]) => void }) {
   const [mode, setMode] = useState<"none" | "talk">("none");
   const [text, setText] = useState("");
-  const [interim, setInterim] = useState("");
-  const [listening, setListening] = useState(false);
-  const [noVoice, setNoVoice] = useState(false);
   const [found, setFound] = useState<ServiceDraft[] | null>(null);
   const [source, setSource] = useState("");
   const [error, setError] = useState("");
   const [busy, start] = useTransition();
-  const rec = useRef<Recognizer | null>(null);
-  const wantListening = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
-
-  useEffect(() => () => {
-    wantListening.current = false;
-    rec.current?.stop();
-  }, []);
-
-  const stopListening = () => {
-    wantListening.current = false;
-    rec.current?.stop();
-    setListening(false);
-    setInterim("");
-  };
-
+  const voice = useDictation((t) => setText((cur) => (cur.trim() ? `${cur.trimEnd()} ${t}` : t)));
+  const listening = voice.listening;
+  const interim = voice.interim;
+  const noVoice = Boolean(voice.error) && !listening;
+  const stopListening = voice.stop;
   const startListening = () => {
     setError("");
     setMode("talk");
-    const Ctor = getRecognizer();
-    if (!Ctor) {
-      setNoVoice(true);
-      return;
-    }
-    const r = new Ctor();
-    r.continuous = true;
-    r.interimResults = true;
-    r.lang = navigator.language || "en-US";
-    r.onresult = (e) => {
-      let finals = "";
-      let live = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        const piece = e.results[i][0].transcript;
-        if (e.results[i].isFinal) finals += piece;
-        else live += piece;
-      }
-      if (finals) setText((t) => (t ? `${t.trimEnd()} ${finals.trim()}` : finals.trim()));
-      setInterim(live);
-    };
-    r.onerror = (e) => {
-      if (e.error === "no-speech" || e.error === "aborted") return;
-      wantListening.current = false;
-      setListening(false);
-      setError(e.error === "not-allowed" || e.error === "service-not-allowed" ? "Allow microphone access for this site in your browser, then try again." : "The microphone stopped. Tap Say your services to keep going.");
-    };
-    // Browsers stop after a pause; keep going until the owner taps Stop.
-    r.onend = () => {
-      if (wantListening.current) {
-        try {
-          r.start();
-        } catch {
-          setListening(false);
-        }
-      } else setListening(false);
-    };
-    rec.current = r;
-    wantListening.current = true;
-    try {
-      r.start();
-      setListening(true);
-    } catch {
-      setNoVoice(true);
-    }
+    voice.start();
   };
 
   const read = (input: Parameters<typeof importServices>[0], from: string) =>
     start(async () => {
       setError("");
       setFound(null);
-      const r = await importServices(input);
+      let r: Awaited<ReturnType<typeof importServices>>;
+      try {
+        r = await importServices(input);
+      } catch (e) {
+        console.error("importServices failed", e);
+        setError("That took too long or the connection dropped. Try again, or try a smaller photo or screenshot.");
+        return;
+      }
       if ("error" in r) setError(r.error);
       else {
         setFound(r.services);
@@ -194,11 +127,7 @@ export function ServicesImport(props: { businessType: string; services: ServiceD
 
       {mode === "talk" && (
         <div className="flex flex-col gap-2">
-          {noVoice && (
-            <p className="text-[13px] text-ink-2">
-              Voice typing isn&apos;t available in this browser. Tap the 🎙 on your phone&apos;s keyboard to talk into the box below, or just type.
-            </p>
-          )}
+          {noVoice && <p role="alert" className="text-[13px] text-danger">{voice.error}</p>}
           {listening && (
             <p className="flex items-center gap-2 text-[13px] font-semibold text-brand-ink" role="status">
               <span className="landing-ping size-2 rounded-full bg-danger" /> Listening… say each service, its price and about how long it takes.
@@ -210,7 +139,7 @@ export function ServicesImport(props: { businessType: string; services: ServiceD
               className="input min-h-28 bg-card py-2.5 leading-relaxed"
               value={text + (interim ? (text ? " " : "") + interim : "")}
               onChange={(e) => {
-                setInterim("");
+                if (listening) stopListening(); // typing takes over from the microphone
                 setText(e.target.value);
               }}
               placeholder="e.g. Silk press is 95 and takes about two and a half hours. Trims are 25, half an hour. Knotless braids medium are 220, six hours, with a 50 dollar deposit."

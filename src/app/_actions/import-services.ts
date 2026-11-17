@@ -21,6 +21,14 @@ export async function importServices(input: { businessType: string; text?: strin
     return { services };
   } catch (e) {
     console.error("importServices failed", e);
-    return { error: "Something went wrong reading that. Try again in a moment." };
+    const err = e as { status?: number; message?: string; name?: string };
+    const why =
+      err.status === 401 ? "The AI key (ANTHROPIC_API_KEY) isn't valid." :
+      err.status === 404 ? "The AI model name isn't right (check BEMBY_VISION_MODEL / BEMBY_CHAT_MODEL)." :
+      err.status === 413 ? "That file is too big. Try a screenshot or a smaller photo." :
+      err.status === 429 || err.status === 529 ? "The AI is busy right now. Try again in a minute." :
+      /timeout|timed out/i.test(`${err.name} ${err.message}`) ? "Reading that took too long. Try a clearer or smaller photo." :
+      `Something went wrong reading that (${err.status ?? ""} ${String(err.message ?? "").slice(0, 120)}). Try again.`;
+    return { error: why };
   }
 }
