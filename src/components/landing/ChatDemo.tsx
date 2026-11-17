@@ -127,9 +127,6 @@ export function ChatDemo() {
       <p className="label">What your client sees</p>
      <div className="relative w-full max-w-[380px]">
       {/* Floating wins around the phone */}
-      <div aria-hidden className="landing-float absolute right-[calc(100%+14px)] bottom-28 z-10 hidden whitespace-nowrap rounded-2xl bg-white/90 px-3.5 py-2.5 text-xs font-semibold shadow-[0_12px_30px_rgba(60,40,140,0.18)] backdrop-blur xl:block [animation-delay:1.2s]">
-        💜 3 new bookings today
-      </div>
 
       <div className="landing-phone relative rounded-[40px] bg-gradient-to-b from-white to-[#f4f1ff] p-3 shadow-[0_40px_80px_-20px_rgba(70,40,190,0.45),0_0_0_1px_rgba(106,75,245,0.12)]">
         <div className="overflow-hidden rounded-[30px] bg-white shadow-[inset_0_0_0_1px_rgba(26,24,48,0.06)]">
@@ -250,10 +247,22 @@ function Progress({ wins, gain }: { wins: number; gain: boolean }) {
   const r = 34;
   const circ = 2 * Math.PI * r;
   const pct = Math.min(1, booked / GOAL);
+  const chip = "pointer-events-none absolute z-10 whitespace-nowrap rounded-2xl bg-white/95 px-3.5 py-2 text-xs font-semibold shadow-[0_12px_30px_rgba(60,40,140,0.2)] backdrop-blur";
   return (
+    <div className="relative mt-3 w-full">
+      {/* Little wins floating around the progress card */}
+      <span aria-hidden className={`${chip} landing-float -left-5 -top-4 hidden sm:block`}>
+        <span className="text-brand-ink">+{20 * (wins + 1)} XP</span> <span className="text-muted">· Level {level}</span>
+      </span>
+      <span aria-hidden className={`${chip} landing-float-slow -right-6 top-3 hidden sm:block`}>
+        🔥 6-day booking streak
+      </span>
+      <span aria-hidden className={`${chip} landing-float -bottom-5 left-8 hidden sm:block [animation-delay:1.2s]`}>
+        💜 {wins + 3} new bookings today
+      </span>
     <div className="relative flex w-full flex-col gap-4 rounded-[20px] bg-card p-5 shadow-[0_20px_44px_rgba(60,40,140,0.14),inset_0_0_0_1px_rgba(26,24,48,0.06)]">
       {gain && (
-        <span aria-hidden className="landing-bubble absolute -top-3 right-4 rounded-full bg-ok px-3 py-1 text-xs font-bold text-white shadow-[0_6px_16px_rgba(20,140,80,0.35)]">
+        <span aria-hidden className="landing-bubble absolute -bottom-3 right-4 z-20 rounded-full bg-ok px-3 py-1 text-xs font-bold text-white shadow-[0_6px_16px_rgba(20,140,80,0.35)]">
           +1 booking · +20 XP
         </span>
       )}
@@ -275,7 +284,6 @@ function Progress({ wins, gain }: { wins: number; gain: boolean }) {
         <div className="min-w-0">
           <p className="label">Booked this month</p>
           <p className="mt-1 font-display text-lg font-semibold leading-tight">{GOAL - booked} more to hit your goal</p>
-          <p className="mt-0.5 text-[13px] text-warn">🔥 6-day booking streak</p>
         </div>
       </div>
       <div className="flex flex-col gap-2">
@@ -287,6 +295,7 @@ function Progress({ wins, gain }: { wins: number; gain: boolean }) {
           <div className="h-3 rounded-full bg-ok" style={{ width: `${into / 10}%`, transition: "width 0.8s cubic-bezier(0.2,0.7,0.2,1)" }} />
         </div>
       </div>
+    </div>
     </div>
   );
 }
