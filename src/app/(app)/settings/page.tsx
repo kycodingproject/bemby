@@ -112,7 +112,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
           {plan.id === "pro" ? (
             <p className="text-[13px] leading-relaxed text-muted">Includes {b.monthly_text_limit.toLocaleString()} texts a month. Instagram chats don&apos;t count. {EXTRA_TEXTS}</p>
           ) : (
-            <p className="text-[13px] leading-relaxed text-muted">Want clients to text you too? {PLANS.pro.name} adds a business phone number for {PLANS.pro.price}/month. Request it in the <Link href="/settings?tab=channels" className="underline">Messaging link</Link> tab.</p>
+            <p className="text-[13px] leading-relaxed text-muted">Want clients to text you too? {PLANS.pro.name} adds a business phone number for {PLANS.pro.price}/month. Request it in the <Link href="/settings?tab=channels" className="underline">Connect</Link> tab.</p>
           )}
           {billingEnabled() && !isDemo() ? (
             <div className="flex flex-col gap-2.5">

@@ -4,7 +4,7 @@ export const SETTINGS_TABS = [
   { id: "services", label: "Services & pricing" },
   { id: "hours", label: "Hours" },
   { id: "receptionist", label: "AI receptionist" },
-  { id: "channels", label: "Messaging link" },
+  { id: "channels", label: "Connect" },
   { id: "calendar", label: "Calendar sync" },
   { id: "plan", label: "Plan & account" },
 ] as const;
