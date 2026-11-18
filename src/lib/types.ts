@@ -94,6 +94,9 @@ export interface Client {
   instagram_id: string | null;
   /** The TikTok conversation with this client (replies are sent to the conversation). */
   tiktok_id?: string | null;
+  /** Stored copy of their Instagram/TikTok profile photo. Missing until migration 0012 runs. */
+  avatar_path?: string | null;
+  avatar_checked_at?: string | null;
   notes: string;
   sms_opt_out: boolean;
 }

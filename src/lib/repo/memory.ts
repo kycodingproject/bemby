@@ -70,6 +70,9 @@ export class MemoryRepo implements Repo {
     return c;
   }
   async getConversation(id: string) { return this.db.conversations.find((c) => c.id === id) ?? null; }
+  async listAiConversationIds(businessId: string) {
+    return new Set(this.db.messages.filter((m) => m.business_id === businessId && m.author === "ai").map((m) => m.conversation_id));
+  }
   async listConversations(businessId: string) {
     return this.db.conversations.filter((c) => c.business_id === businessId).sort((a, b) => b.last_message_at.localeCompare(a.last_message_at));
   }

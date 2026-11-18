@@ -1,3 +1,4 @@
+import { QUIET_NOTE } from "../triggers";
 import type { Appointment, Business, Client, Conversation, Message, Service } from "../types";
 import { addDaysLocal, zonedParts, zonedTimeToUtc } from "../time";
 import type { MemoryDb } from "./memory";
@@ -154,6 +155,13 @@ export function seedDemo(now: Date): MemoryDb {
     intake: { hair_length: "Shoulder length", color_history: "None in the last year" },
     photos: [photo("Current hair"), photo("Inspo")], created_at: now.toISOString(),
   });
+
+  // A personal DM Bemby stayed out of (shows under "Other DMs" in the inbox).
+  const mom = client("Mom", { ig: "mom.k" });
+  convo(mom, "instagram", "", "ai", [
+    ["client", "are you still coming to dinner sunday?? 🥘"],
+    ["system", `${QUIET_NOTE} Tap "Let Bemby answer" if this is a client.`],
+  ], 90);
 
   const tayConvo = convo(tay, "instagram", "Reschedule", "ai", [
     ["client", "hey can i move my appt? something came up"],

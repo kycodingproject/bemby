@@ -78,6 +78,10 @@ export class SupabaseRepo implements Repo {
   async getConversation(id: string) {
     return must(await this.sb.from("conversations").select("*").eq("id", id).maybeSingle()) as Conversation | null;
   }
+  async listAiConversationIds(businessId: string) {
+    const rows = must(await this.sb.from("messages").select("conversation_id").eq("business_id", businessId).eq("author", "ai").limit(10000)) as { conversation_id: string }[];
+    return new Set(rows.map((r) => r.conversation_id));
+  }
   async listConversations(businessId: string) {
     return must(await this.sb.from("conversations").select("*").eq("business_id", businessId).order("last_message_at", { ascending: false })) as Conversation[];
   }

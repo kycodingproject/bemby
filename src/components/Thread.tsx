@@ -5,10 +5,11 @@ import type { Conversation, MediaRef, Message } from "@/lib/types";
 import { approveMessage, discardMessage, letBembyAnswer, sendOwnerMessage, setConversationMode } from "@/app/(app)/actions";
 import { QUIET_NOTE } from "@/lib/triggers";
 import { PhotoTile } from "./PhotoTile";
+import { Avatar } from "./Avatar";
 
 type Msg = Omit<Message, "media"> & { media: (MediaRef & { url?: string | null })[] };
 
-export function Thread(props: { conversation: Conversation; clientName: string; channelLabel: string; ownerName: string; messages: Msg[] }) {
+export function Thread(props: { conversation: Conversation; clientName: string; avatarUrl?: string | null; channelLabel: string; ownerName: string; messages: Msg[] }) {
   const { conversation: cv, messages } = props;
   const [draft, setDraft] = useState("");
   const [editing, setEditing] = useState<{ id: string; text: string } | null>(null);
@@ -23,9 +24,12 @@ export function Thread(props: { conversation: Conversation; clientName: string; 
   return (
     <section aria-label={`Conversation with ${props.clientName}`} className="card flex min-w-0 flex-[999_1_420px] flex-col">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
-        <div>
-          <p className="font-display text-lg font-semibold">{props.clientName}</p>
-          <p className="mt-0.5 text-[13px] text-muted">{props.channelLabel}{cv.topic ? ` · ${cv.topic}` : ""}</p>
+        <div className="flex min-w-0 items-center gap-3">
+          <Avatar name={props.clientName} url={props.avatarUrl} size={44} />
+          <div className="min-w-0">
+            <p className="truncate font-display text-lg font-semibold">{props.clientName}</p>
+            <p className="mt-0.5 text-[13px] text-muted">{props.channelLabel}{cv.topic ? ` · ${cv.topic}` : ""}</p>
+          </div>
         </div>
         {ownerMode ? (
           <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => start(() => setConversationMode(cv.id, "ai"))}>

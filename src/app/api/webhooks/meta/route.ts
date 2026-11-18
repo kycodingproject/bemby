@@ -4,7 +4,7 @@ import { handleInbound } from "@/lib/inbound";
 import { loadStoredMedia, storeRemoteMedia } from "@/lib/media";
 import { getChannelSecrets, validMetaSignature } from "@/lib/channels/meta";
 import { handleOwnerAppReply } from "@/lib/channels/owner-reply";
-import type { MediaRef } from "@/lib/types";
+import type { Client, MediaRef } from "@/lib/types";
 
 export const runtime = "nodejs";
 // Bemby waits up to a few minutes for the client to finish typing before replying.
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
           const result = await handleInbound({
             repo, businessId: business.id, channel, from, body: text, media, providerMessageId: msg.mid, loadMedia: loadStoredMedia,
           });
-          if (isNew) await fillClientName(repo, business.id, channel, from, result.inbound.conversation_id);
+          await fillClientProfile(repo, business.id, from, result.inbound.conversation_id, isNew);
         } catch (e) {
           // Duplicate deliveries hit the unique provider_message_id and are safely ignored.
           if (!/duplicate key/i.test((e as Error).message)) console.error("meta inbound failed", e);
@@ -96,24 +96,35 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ ok: true });
 }
 
-/** Best effort: show the client's Instagram name in the inbox instead of a number. */
-async function fillClientName(repo: ReturnType<typeof getRepo>, businessId: string, channel: "instagram", from: string, conversationId: string) {
+const WEEK = 7 * 86400_000;
+
+/**
+ * Best effort: show the client's Instagram name and profile photo in the inbox.
+ * Instagram's photo links expire, so a copy is kept in storage and refreshed about once a week.
+ */
+async function fillClientProfile(repo: ReturnType<typeof getRepo>, businessId: string, from: string, conversationId: string, isNew: boolean) {
   try {
-    const secrets = await getChannelSecrets(businessId);
     const conv = await repo.getConversation(conversationId);
-    if (!secrets || !conv) return;
-    const client = await repo.getClient(conv.client_id);
-    if (!client || client.name) return;
-    const url = secrets.instagram_token
-      ? `https://graph.instagram.com/${process.env.META_GRAPH_VERSION ?? "v25.0"}/${from}?fields=name,username&access_token=${encodeURIComponent(secrets.instagram_token)}`
-      : null;
-    if (!url) return;
-    const res = await fetch(url);
+    const client = conv ? await repo.getClient(conv.client_id) : null;
+    if (!client) return;
+    const checked = client.avatar_checked_at ? new Date(client.avatar_checked_at).getTime() : 0;
+    if (!isNew && client.name && Date.now() - checked < WEEK) return;
+    const secrets = await getChannelSecrets(businessId);
+    if (!secrets?.instagram_token) return;
+    const res = await fetch(`https://graph.instagram.com/${process.env.META_GRAPH_VERSION ?? "v25.0"}/${from}?fields=name,username,profile_pic&access_token=${encodeURIComponent(secrets.instagram_token)}`);
     if (!res.ok) return;
-    const p = (await res.json()) as { name?: string; username?: string };
+    const p = (await res.json()) as { name?: string; username?: string; profile_pic?: string };
+    const patch: Partial<Client> = {};
     const name = p.name || (p.username ? `@${p.username}` : "");
-    if (name) await repo.updateClient(client.id, { name: name.slice(0, 80) });
+    if (name && !client.name) patch.name = name.slice(0, 80);
+    const pic = p.profile_pic ? await storeRemoteMedia(businessId, p.profile_pic) : null;
+    if (pic) patch.avatar_path = pic.path;
+    patch.avatar_checked_at = new Date().toISOString();
+    await repo.updateClient(client.id, patch).catch(async () => {
+      // Photo columns missing (migration 0012 not run): still save the name.
+      if (patch.name) await repo.updateClient(client.id, { name: patch.name });
+    });
   } catch {
-    // names are a nicety; never fail the message over it
+    // names and photos are a nicety; never fail the message over them
   }
 }

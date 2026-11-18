@@ -27,6 +27,8 @@ export interface Repo {
   findOrCreateConversation(businessId: string, clientId: string, channel: Channel): Promise<Conversation>;
   getConversation(id: string): Promise<Conversation | null>;
   listConversations(businessId: string): Promise<Conversation[]>;
+  /** Conversations where Bemby has sent (or drafted) at least one reply. */
+  listAiConversationIds(businessId: string): Promise<Set<string>>;
   updateConversation(id: string, patch: Partial<Conversation>): Promise<Conversation>;
   listMessages(conversationId: string, limit?: number): Promise<Message[]>;
   addMessage(m: Omit<Message, "id" | "created_at"> & { provider_message_id?: string }): Promise<Message>;
